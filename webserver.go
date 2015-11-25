@@ -9,9 +9,11 @@ import (
 )
 
 type Server struct {
-	router *mux.Router
-	log    *toolkit.LogEngine
-	status chan string
+	Address string
+
+	mxrouter *mux.Router
+	log      *toolkit.LogEngine
+	status   chan string
 }
 
 func (s *Server) Log() *toolkit.LogEngine {
@@ -23,12 +25,15 @@ func (s *Server) Log() *toolkit.LogEngine {
 
 type FnContent func(svr *Server, r *http.Request) interface{}
 
-func (s *Server) Route(path string, fnc FnContent, cfg *RouteConfig) {
-	if s.router == nil {
-		s.router = mux.NewRouter()
+func (s *Server) router() *mux.Router {
+	if s.mxrouter == nil {
+		s.mxrouter = mux.NewRouter()
 	}
+	return s.mxrouter
+}
 
-	s.router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+func (s *Server) Route(path string, fnc FnContent, cfg *RouteConfig) {
+	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
 			v := fnc(s, r)
 			/*
@@ -45,11 +50,19 @@ func (s *Server) Route(path string, fnc FnContent, cfg *RouteConfig) {
 	})
 }
 
+func (s *Server) GetHandler(path string) http.Handler {
+	mr := s.router().GetRoute(path)
+	if mr == nil {
+		return nil
+	}
+	return mr.GetHandler()
+}
+
 func (s *Server) Start(addr string) error {
 	s.status = make(chan string)
 	s.Log().Info("Start listening on server " + addr)
 	go func() {
-		http.ListenAndServe(addr, s.router)
+		http.ListenAndServe(addr, s.router())
 	}()
 	return nil
 }
