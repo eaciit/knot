@@ -35,7 +35,7 @@ func (s *Server) router() *mux.Router {
 	return s.mxrouter
 }
 
-func (s *Server) Register(c interface{}, prefix string, cfgs map[string]*RouteConfig) error {
+func (s *Server) Register(c interface{}, prefix string) error {
 	var t reflect.Type
 	v := reflect.ValueOf(c)
 	if v.Kind() != reflect.Ptr {
@@ -75,41 +75,19 @@ func (s *Server) Register(c interface{}, prefix string, cfgs map[string]*RouteCo
 		}
 
 		if isFnContent {
-			outputType := OutputHtml
-			var cfg *RouteConfig
 			var fnc FnContent
 			fnc = v.MethodByName(method.Name).Interface().(func(*Request) interface{})
 			methodName := method.Name
-			if strings.HasSuffix(strings.ToLower(methodName), "json") {
-				outputType = OutputJson
-				methodName = methodName[0 : len(methodName)-4]
-			}
 			handlerPath := path + strings.ToLower(methodName)
 			s.Log().Info(fmt.Sprintf("Registering handler for %s", handlerPath))
-			if outputType == OutputJson {
-				s.RouteJson(handlerPath, fnc, cfg)
-			} else {
-				s.Route(handlerPath, fnc, cfg)
-			}
+			s.Route(handlerPath, fnc)
 		}
 	}
 
 	return nil
 }
 
-func (s *Server) RouteJson(path string, fnc FnContent, cfg *RouteConfig) {
-	if cfg == nil {
-		cfg = new(RouteConfig)
-	}
-	cfg.OutputType = OutputJson
-	s.Route(path, fnc, cfg)
-}
-
-func (s *Server) Route(path string, fnc FnContent, cfg *RouteConfig) {
-	if cfg == nil {
-		cfg = new(RouteConfig)
-		cfg.OutputType = OutputHtml
-	}
+func (s *Server) Route(path string, fnc FnContent) {
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
 			kr := new(Request)
@@ -117,7 +95,7 @@ func (s *Server) Route(path string, fnc FnContent, cfg *RouteConfig) {
 			kr.httpRequest = r
 			v := fnc(kr)
 
-			if cfg.OutputType == OutputJson {
+			if kr.RouteConfig().OutputType == OutputJson {
 				w.Header().Set("Content-Type", "application/json; charset=utf-8")
 				json.NewEncoder(w).Encode(v)
 			} else {

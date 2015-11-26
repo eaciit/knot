@@ -11,16 +11,30 @@ import (
 type Request struct {
 	server      *Server
 	httpRequest *http.Request
+	routeConfig *RouteConfig
 
 	queryKeys []string
 }
 
 func (r *Request) Server() *Server {
+	if r.server == nil {
+		r.server = new(Server)
+	}
 	return r.server
 }
 
 func (r *Request) HttpRequest() *http.Request {
+	if r.httpRequest == nil {
+		r.httpRequest = new(http.Request)
+	}
 	return r.httpRequest
+}
+
+func (r *Request) RouteConfig() *RouteConfig {
+	if r.routeConfig == nil {
+		r.routeConfig = new(RouteConfig)
+	}
+	return r.routeConfig
 }
 
 func (r *Request) QueryKeys() []string {
