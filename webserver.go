@@ -1,6 +1,7 @@
 package knot
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/eaciit/toolkit"
 	"github.com/gorilla/mux"
@@ -74,26 +75,54 @@ func (s *Server) Register(c interface{}, prefix string, cfgs map[string]*RouteCo
 		}
 
 		if isFnContent {
+			outputType := OutputHtml
 			var cfg *RouteConfig
 			var fnc FnContent
 			fnc = v.MethodByName(method.Name).Interface().(func(*Request) interface{})
-			handlerPath := path + strings.ToLower(method.Name)
+			methodName := method.Name
+			if strings.HasSuffix(strings.ToLower(methodName), "json") {
+				outputType = OutputJson
+				methodName = methodName[0 : len(methodName)-4]
+			}
+			handlerPath := path + strings.ToLower(methodName)
 			s.Log().Info(fmt.Sprintf("Registering handler for %s", handlerPath))
-			s.Route(handlerPath, fnc, cfg)
+			if outputType == OutputJson {
+				s.RouteJson(handlerPath, fnc, cfg)
+			} else {
+				s.Route(handlerPath, fnc, cfg)
+			}
 		}
 	}
 
 	return nil
 }
 
+func (s *Server) RouteJson(path string, fnc FnContent, cfg *RouteConfig) {
+	if cfg == nil {
+		cfg = new(RouteConfig)
+	}
+	cfg.OutputType = OutputJson
+	s.Route(path, fnc, cfg)
+}
+
 func (s *Server) Route(path string, fnc FnContent, cfg *RouteConfig) {
+	if cfg == nil {
+		cfg = new(RouteConfig)
+		cfg.OutputType = OutputHtml
+	}
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
 			kr := new(Request)
 			kr.server = s
 			kr.httpRequest = r
 			v := fnc(kr)
-			fmt.Fprint(w, v)
+
+			if cfg.OutputType == OutputJson {
+				w.Header().Set("Content-Type", "application/json; charset=utf-8")
+				json.NewEncoder(w).Encode(v)
+			} else {
+				fmt.Fprint(w, v)
+			}
 		} else {
 			w.Write([]byte(""))
 		}

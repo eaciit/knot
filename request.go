@@ -1,10 +1,18 @@
 package knot
 
-import "net/http"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"mime/multipart"
+	"net/http"
+)
 
 type Request struct {
 	server      *Server
 	httpRequest *http.Request
+
+	queryKeys []string
 }
 
 func (r *Request) Server() *Server {
@@ -13,4 +21,51 @@ func (r *Request) Server() *Server {
 
 func (r *Request) HttpRequest() *http.Request {
 	return r.httpRequest
+}
+
+func (r *Request) QueryKeys() []string {
+	if len(r.queryKeys) == 0 {
+		if r.HttpRequest() == nil {
+			return r.queryKeys
+		}
+
+		values := r.HttpRequest().URL.Query()
+		for k, _ := range values {
+			r.queryKeys = append(r.queryKeys, k)
+		}
+	}
+	return r.queryKeys
+}
+
+func (r *Request) Query(id string) string {
+	if r.httpRequest == nil {
+		return ""
+	}
+
+	return r.HttpRequest().URL.Query().Get(id)
+}
+
+func (r *Request) GetPayload(result interface{}) error {
+	if r.httpRequest == nil {
+		return errors.New("HttpRequest object is not properly setup")
+	}
+
+	body := r.httpRequest.Body
+	defer body.Close()
+	decoder := json.NewDecoder(body)
+	return decoder.Decode(result)
+}
+
+func (r *Request) GetPayloadMultipart(result interface{}) (map[string][]*multipart.FileHeader,
+	map[string][]string, error) {
+	var e error
+	if r.httpRequest == nil {
+		return nil, nil, errors.New("HttpRequest object is not properly setup")
+	}
+	e = r.httpRequest.ParseMultipartForm(1024 * 1024 * 1024 * 1024)
+	if e != nil {
+		return nil, nil, fmt.Errorf("Unable to parse: %s", e.Error())
+	}
+	m := r.httpRequest.MultipartForm
+	return m.File, m.Value, nil
 }
