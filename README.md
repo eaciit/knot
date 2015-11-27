@@ -35,4 +35,33 @@ Route to static folder
 ```
 ks.RouteStatic("static","/Users/ariefdarmawan/Temp/knot/app1/static")
 ```
-Above command will route folder [i]/Users/ariefdarmawan/Temp/knot/app1/static[/i] to [i]static[/]. Thus when use access ie. http://servername/static will server on respective folder.
+
+## Register a controller
+Controller is a struct with sets of FnContent. Knot have ability to scan registered controller for FnContent function and autoregister them
+
+Below code will define controller called as Hello with 3 functions: Morning, Evening and Night. But since Morning and Evening are only function match with FnContent contract, those 2 functions will be registered as RouteHandler.
+```
+// here is our controller
+type Hello struct{
+}
+
+// http://servername/hello/morning
+func (h *Hello) Morning(r *knot.Request) interface{}{
+  return "Good morning"
+}
+
+// http://servername/hello/evening
+func (h *Hello) Evening(r *knot.Request) interface{}{
+  return "Good evening"
+}
+
+func (h *Hello) Night() interface{}{
+  return "Good Night"
+}
+
+func main(){
+  ks := new(knot.Server)
+  ks.Register(new(Hello),"")
+  ks.Listen()
+}
+```
