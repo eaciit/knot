@@ -18,6 +18,7 @@ var FnContent func(*knot.Request)interface{}
 knot.Request is wrapper of KnotServer object, HttpRequest and other related context of Knot. Any data returned by this function will be used as body of the response.
 
 ## Route 
+Route to a function handler
 ```
 func main(){
   ks := new(knot.Server)
@@ -29,3 +30,9 @@ func Hi(r *knot.Request)interaface{}{
   return "Hello World!"
 }
 ```
+
+Route to static folder
+```
+ks.RouteStatic("static","/Users/ariefdarmawan/Temp/knot/app1/static")
+```
+Above command will route folder [i]/Users/ariefdarmawan/Temp/knot/app1/static[/i] to [i]static[/]. Thus when use access ie. http://servername/static will server on respective folder.
