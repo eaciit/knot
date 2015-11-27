@@ -6,6 +6,7 @@ import (
 	"github.com/eaciit/toolkit"
 	"github.com/gorilla/mux"
 	"net/http"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -46,13 +47,7 @@ func (s *Server) Register(c interface{}, prefix string) error {
 
 	s.Log().Info(fmt.Sprintf("Registering %s", controllerName))
 	path := prefix
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
-	}
-	if !strings.HasSuffix(path, "/") {
-		path = path + "/"
-	}
-
+	fixUrlPath(&path, true, true)
 	controllerName = strings.ToLower(controllerName)
 	if strings.HasSuffix(controllerName, "controller") {
 		controllerName = controllerName[0 : len(controllerName)-len("controller")]
@@ -87,7 +82,32 @@ func (s *Server) Register(c interface{}, prefix string) error {
 	return nil
 }
 
+func fixUrlPath(urlPath *string, preSlash, postSlash bool) {
+	path := strings.ToLower(*urlPath)
+	if preSlash && strings.HasPrefix(path, "/") == false {
+		path = "/" + path
+	}
+	if postSlash && strings.HasSuffix(path, "/") == false {
+		path += "/"
+	}
+	*urlPath = path
+}
+
+func (s *Server) RouteStatic(pathUrl, path string) {
+	_, ePath := os.Stat(path)
+	if ePath != nil {
+		s.Log().Error(fmt.Sprintf("Unable to add static %s from %s : %s", pathUrl, path, ePath.Error()))
+		return
+	}
+
+	fixUrlPath(&pathUrl, true, true)
+	s.Log().Info(fmt.Sprintf("Add static %s from %s", pathUrl, path))
+	fsHandler := http.StripPrefix(pathUrl, http.FileServer(http.Dir(path)))
+	s.router().PathPrefix(pathUrl).Handler(fsHandler)
+}
+
 func (s *Server) Route(path string, fnc FnContent) {
+	fixUrlPath(&path, true, false)
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
 			kr := new(Request)
