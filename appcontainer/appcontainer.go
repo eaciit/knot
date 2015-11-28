@@ -19,8 +19,10 @@ var (
 )
 
 type App struct {
-	Name        string
-	Enable      bool
+	Name   string
+	Enable bool
+
+	views       []string
 	controllers map[string]interface{}
 	statics     map[string]string
 }
@@ -54,6 +56,13 @@ func (a *App) Controllers() map[string]interface{} {
 	return a.controllers
 }
 
+func (a *App) View(s string) {
+	if a.views == nil {
+		a.views = []string{}
+	}
+	a.views = append(a.views, s)
+}
+
 func NewApp(name string) *App {
 	app := new(App)
 	app.Name = name
@@ -84,7 +93,10 @@ func Start(c *Config) {
 		//-- end of regex
 		ks.Log().Info("Scan application " + appname + " for controller registration")
 		for _, controller := range app.Controllers() {
-			ks.Register(controller, appname)
+			ks.RegisterWithConfig(controller, appname, &knot.ResponseConfig{
+				AppName: k,
+				Views:   app.views,
+			})
 		}
 
 		for surl, spath := range app.Statics() {

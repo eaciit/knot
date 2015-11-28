@@ -4,14 +4,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html/template"
 	"mime/multipart"
 	"net/http"
 )
 
+var (
+	DefaultOutputType OutputType
+)
+
 type Request struct {
-	server      *Server
-	httpRequest *http.Request
-	routeConfig *RouteConfig
+	server         *Server
+	httpRequest    *http.Request
+	responseConfig *ResponseConfig
 
 	queryKeys []string
 }
@@ -30,11 +35,12 @@ func (r *Request) HttpRequest() *http.Request {
 	return r.httpRequest
 }
 
-func (r *Request) RouteConfig() *RouteConfig {
-	if r.routeConfig == nil {
-		r.routeConfig = new(RouteConfig)
+func (r *Request) ResponseConfig() *ResponseConfig {
+	if r.responseConfig == nil {
+		r.responseConfig = NewResponseConfig()
 	}
-	return r.routeConfig
+	r.responseConfig.OutputType = DefaultOutputType
+	return r.responseConfig
 }
 
 func (r *Request) QueryKeys() []string {
@@ -82,4 +88,43 @@ func (r *Request) GetPayloadMultipart(result interface{}) (map[string][]*multipa
 	}
 	m := r.httpRequest.MultipartForm
 	return m.File, m.Value, nil
+}
+
+func (r *Request) setHeaders(w http.ResponseWriter, data interface{}) {
+	cfg := r.ResponseConfig()
+	for k, v := range cfg.Headers {
+		w.Header().Set(k, v)
+	}
+}
+
+func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
+	cfg := r.ResponseConfig()
+	if cfg.OutputType == OutputJson {
+		return r.WriteJson(w, data)
+	}
+
+	if cfg.OutputType == OutputByte {
+		fmt.Fprint(w, data)
+		return nil
+	}
+
+	w.Header().Set("Content-Type", "text/html")
+	if cfg.ViewName != "" {
+		for _, viewPath := range cfg.Views {
+			t, e := template.ParseGlob(viewPath)
+			if e != nil {
+				fmt.Fprint(w, e.Error())
+				return
+			}
+			t.Execute(w, data)
+		}
+	} else {
+		fmt.Fprint(w, data)
+		return nil
+	}
+}
+
+func (r *Request) WriteJson(w http.ResponseWriter, data interface{}) error {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	return json.NewEncoder(w).Encode(data)
 }

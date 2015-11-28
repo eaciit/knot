@@ -1,7 +1,6 @@
 package knot
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/eaciit/toolkit"
 	"github.com/gorilla/mux"
@@ -37,6 +36,10 @@ func (s *Server) router() *mux.Router {
 }
 
 func (s *Server) Register(c interface{}, prefix string) error {
+	return s.RegisterWithConfig(c, prefix, NewResponseConfig())
+}
+
+func (s *Server) RegisterWithConfig(c interface{}, prefix string, cfg *ResponseConfig) error {
 	var t reflect.Type
 	v := reflect.ValueOf(c)
 	if v.Kind() != reflect.Ptr {
@@ -75,7 +78,7 @@ func (s *Server) Register(c interface{}, prefix string) error {
 			methodName := method.Name
 			handlerPath := path + strings.ToLower(methodName)
 			s.Log().Info(fmt.Sprintf("Registering handler for %s", handlerPath))
-			s.Route(handlerPath, fnc)
+			s.RouteWithConfig(handlerPath, fnc, cfg)
 		}
 	}
 
@@ -107,19 +110,22 @@ func (s *Server) RouteStatic(pathUrl, path string) {
 }
 
 func (s *Server) Route(path string, fnc FnContent) {
+	s.RouteWithConfig(path, fnc, NewResponseConfig())
+}
+
+func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig) {
 	fixUrlPath(&path, true, false)
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
 			kr := new(Request)
 			kr.server = s
 			kr.httpRequest = r
+			kr.responseConfig = cfg
 			v := fnc(kr)
 
-			if kr.RouteConfig().OutputType == OutputJson {
-				w.Header().Set("Content-Type", "application/json; charset=utf-8")
-				json.NewEncoder(w).Encode(v)
-			} else {
-				fmt.Fprint(w, v)
+			eWrite := kr.Write(w, v)
+			if eWrite != nil {
+				fmt.Fprintln(w, eWrite.Error())
 			}
 		} else {
 			w.Write([]byte(""))
