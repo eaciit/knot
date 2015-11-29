@@ -58,3 +58,10 @@ func (w *WorldController) Cookie(r *knot.Request) interface{} {
 	}
 	return "Cookie value is " + cvalue
 }
+
+func (w *WorldController) Session(r *knot.Request) interface{} {
+	r.ResponseConfig().OutputType = knot.OutputHtml
+	s := r.Session("NameAndTime", "").(string)
+	r.SetSession("NameAndTime", "Arief Darmawan : "+time.Now().String())
+	return "Session value is " + s
+}

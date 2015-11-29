@@ -5,6 +5,7 @@ import (
 	"github.com/eaciit/kingpin"
 	"github.com/eaciit/knot"
 	"io/ioutil"
+	//"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -130,8 +131,24 @@ func Start(c *Config) {
 
 	ks.Route("/status", Status)
 	ks.Route("/stop", StopServer)
+	//ks.Route("/p", ShowPage)
 	ks.Listen()
 }
+
+/*
+func ShowPage(r *knot.Request) interface{} {
+	//r.ResponseConfig().OutputType = knot.OutputHtml
+	wd, _ := os.Getwd()
+	s := r.Query("v")
+	b := r.Query("b")
+	dirname := filepath.Join(wd, b) + "/"
+	includes := getIncludeFiles(dirname)
+	r.ResponseConfig().IncludeFiles = includes
+	r.ResponseConfig().ViewsPath = dirname
+	r.ResponseConfig().ViewName = s
+	return ""
+}
+*/
 
 func StopServer(r *knot.Request) interface{} {
 	r.Server().Stop()
