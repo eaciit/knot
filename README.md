@@ -1,9 +1,9 @@
 # knot
-Knot is golang application container web server. It still on experimental version
+Knot is a web server and application container for Golang Web Based App. It still on experimental version
 
 # Background
 I've been working with Golang for sometime. While some stack are build on either command line or REST, I always use web based application as main UI. 
-Most of the time out application will be proxied by Nginx, and to be honest, it complicated bit, because we have to change nginx config file and restart it whenever we have new application developed. These then inspired me to build Knot.
+Most of the time our application will be proxied by Nginx, and to be honest, it is complicated effort, because we have to change nginx config file and restart it whenever we have new application developed. These then inspired me to build Knot.
 
 # Usage
 Load knot
@@ -65,3 +65,12 @@ func main(){
   ks.Listen()
 }
 ```
+
+## Undocumented Feature
+Below feature are available already on Knot, but not yet documented properly yet
+
+- Cookie
+- Template
+- Json 
+- Multi application
+
