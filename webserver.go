@@ -78,7 +78,14 @@ func (s *Server) RegisterWithConfig(c interface{}, prefix string, cfg *ResponseC
 			methodName := method.Name
 			handlerPath := path + strings.ToLower(methodName)
 			s.Log().Info(fmt.Sprintf("Registering handler for %s", handlerPath))
-			s.RouteWithConfig(handlerPath, fnc, cfg)
+			newcfg := NewResponseConfig()
+			*newcfg = *cfg
+			if newcfg.OutputType == OutputTemplate && newcfg.ViewName == "" {
+				newcfg.ViewName = strings.Join([]string{
+					strings.ToLower(controllerName),
+					strings.ToLower(methodName)}, "/") + ".html"
+			}
+			s.RouteWithConfig(handlerPath, fnc, newcfg)
 		}
 	}
 
@@ -128,7 +135,7 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 	fixUrlPath(&path, true, false)
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
-			s.Log().Info(fmt.Sprintf("%s %s", r.URL.String(), r.RemoteAddr))
+			s.Log().Info(fmt.Sprintf("%s %s OutputType:%s", r.URL.String(), r.RemoteAddr, cfg.OutputType.String()))
 			rcfg := NewResponseConfig()
 			*rcfg = *cfg
 			kr := new(Request)
@@ -136,10 +143,7 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 			kr.httpRequest = r
 			kr.responseConfig = rcfg
 			v := fnc(kr)
-			eWrite := kr.Write(w, v)
-			if eWrite != nil {
-				fmt.Fprintln(w, eWrite.Error())
-			}
+			kr.Write(w, v)
 		} else {
 			w.Write([]byte(""))
 		}

@@ -19,7 +19,7 @@ var (
 func main() {
 	kingpin.Parse()
 
-	knot.DefaultOutputType = knot.OutputHtml
+	knot.DefaultOutputType = knot.OutputTemplate
 	appcontainer.Start(&appcontainer.Config{
 		Address: *flagAddress,
 	})

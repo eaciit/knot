@@ -6,23 +6,34 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
-	var e error
 	cfg := r.ResponseConfig()
-	if cfg.OutputType == OutputJson {
-		return r.WriteJson(w, data)
+	if cfg.OutputType == OutputTemplate {
+		return r.WriteError(w, r.WriteTemplate(w, data))
 	}
 
-	if cfg.OutputType == OutputByte {
+	if cfg.OutputType == OutputJson {
+		return r.WriteError(w, r.WriteJson(w, data))
+	}
+
+	if cfg.OutputType == OutputByte || cfg.OutputType == OutputHtml {
 		fmt.Fprint(w, data)
 		return nil
 	}
 
-	w.Header().Set("Content-Type", "text/html")
-	if cfg.ViewName != "" || cfg.LayoutTemplate != "" {
+	return nil
+}
+
+func (r *Request) WriteTemplate(w http.ResponseWriter, data interface{}) error {
+	var e error
+	cfg := r.ResponseConfig()
+	//w.Header().Set("Content-Type", "text/html")
+	if cfg.ViewName != "" {
 		useLayout := false
 		viewsPath := cfg.ViewsPath
 		fixLogicalPath(&viewsPath, true, true)
@@ -34,45 +45,62 @@ func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
 			viewFile += cfg.ViewName
 		}
 		if useLayout {
-			if cfg.ViewName != "" {
-				buf := bytes.Buffer{}
-				e = r.WriteToTemplate(&buf, data, cfg.ViewName)
-				if e != nil {
-					r.WriteError(w, e.Error())
-					return nil
-				}
-				e = r.WriteToTemplate(w, struct{ Content interface{} }{
-					template.HTML(string(buf.Bytes()))}, cfg.LayoutTemplate)
-				if e != nil {
-					r.WriteError(w, e.Error())
-					return nil
-				}
-			} else {
-				e = r.WriteToTemplate(w, struct{ Content interface{} }{data}, cfg.LayoutTemplate)
+			buf := bytes.Buffer{}
+			e = r.writeToTemplate(&buf, data, cfg.ViewName)
+			if e != nil {
+				return e
+			}
+			e = r.writeToTemplate(w, struct{ Content interface{} }{
+				template.HTML(string(buf.Bytes()))}, cfg.LayoutTemplate)
+			if e != nil {
+				return e
 			}
 		} else {
-			e = r.WriteToTemplate(w, data, cfg.ViewName)
+			e = r.writeToTemplate(w, data, cfg.ViewName)
 		}
 		if e != nil {
-			r.WriteError(w, e.Error())
-			return nil
+			return e
 		}
 	} else {
-		fmt.Fprint(w, data)
-		return nil
+		return fmt.Errorf("No template define for %s", strings.ToLower(r.httpRequest.URL.String()))
 	}
-
 	return nil
 }
 
-func (r *Request) WriteToTemplate(w io.Writer, data interface{}, templateFile string) error {
+func (r *Request) writeToTemplate(w io.Writer, data interface{}, templateFile string) error {
 	cfg := r.ResponseConfig()
 	viewsPath := cfg.ViewsPath
 	viewFile := viewsPath + templateFile
-	t, e := template.ParseFiles(viewFile)
+	bs, e := ioutil.ReadFile(viewFile)
 	if e != nil {
 		return e
 	}
+	t, e := template.New("main").Funcs(template.FuncMap{
+		"BaseUrl": func() string {
+			base := "/"
+			if cfg.AppName != "" {
+				base += strings.ToLower(cfg.AppName)
+			}
+			if base != "/" {
+				base += "/"
+			}
+			return base
+		},
+	}).Parse(string(bs))
+	/*
+		t.Funcs(template.FuncMap{
+			"BaseUrl": func() string {
+				base := "/"
+				if cfg.AppName != "" {
+					base += strings.ToLower(cfg.AppName)
+				}
+				if base != "/" {
+					base += "/"
+				}
+				return base
+			},
+		})
+	*/
 	for _, includeFile := range cfg.IncludeFiles {
 		if includeFile != cfg.LayoutTemplate && includeFile != templateFile {
 			includeFilePath := viewsPath + includeFile
@@ -94,8 +122,12 @@ func (r *Request) WriteJson(w http.ResponseWriter, data interface{}) error {
 	return json.NewEncoder(w).Encode(data)
 }
 
-func (r *Request) WriteError(w http.ResponseWriter, errorString string) {
-	hr := r.HttpRequest()
-	r.Server().Log().Error(fmt.Sprintf("%s %s Error: %s", hr.URL.String(), hr.RemoteAddr, errorString))
-	fmt.Fprint(w, errorString)
+func (r *Request) WriteError(w http.ResponseWriter, e error) error {
+	if e != nil {
+		errorString := e.Error()
+		hr := r.HttpRequest()
+		r.Server().Log().Error(fmt.Sprintf("%s %s Error: %s", hr.URL.String(), hr.RemoteAddr, errorString))
+		fmt.Fprint(w, errorString)
+	}
+	return e
 }

@@ -5,10 +5,24 @@ import ()
 type OutputType int
 
 const (
-	OutputHtml OutputType = 1
-	OutputJson OutputType = 10
-	OutputByte OutputType = 100
+	OutputTemplate OutputType = 0
+	OutputHtml     OutputType = 1
+	OutputJson     OutputType = 10
+	OutputByte     OutputType = 100
 )
+
+func (o OutputType) String() string {
+	if o == OutputTemplate {
+		return "Template"
+	} else if o == OutputHtml {
+		return "HTML"
+	} else if o == OutputJson {
+		return "JSON"
+	} else if o == OutputByte {
+		return "Byte"
+	}
+	return "N/A"
+}
 
 type ResponseConfig struct {
 	AppName        string
