@@ -78,9 +78,7 @@ func (s *Server) RegisterWithConfig(c interface{}, prefix string, cfg *ResponseC
 			methodName := method.Name
 			handlerPath := path + strings.ToLower(methodName)
 			s.Log().Info(fmt.Sprintf("Registering handler for %s", handlerPath))
-			newcfg := NewResponseConfig()
-			*newcfg = *cfg
-			s.RouteWithConfig(handlerPath, fnc, newcfg)
+			s.RouteWithConfig(handlerPath, fnc, cfg)
 		}
 	}
 
