@@ -89,7 +89,7 @@ func main() {
 }
 ```
 
-now we create knot application that will be read by above daemon
+now we need to create knot application that will be read by above daemon
 ```
 package hello
 
