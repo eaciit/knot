@@ -4,11 +4,16 @@ import (
 	"github.com/eaciit/knot"
 	"github.com/eaciit/knot/appcontainer"
 	"github.com/eaciit/toolkit"
+	"os"
 	"time"
 )
 
 var (
-	appViewsPath = "/Users/ariefdarmawan/goapp/src/github.com/eaciit/knot/example/hello/views/"
+	//appViewsPath = "/Users/ariefdarmawan/goapp/src/github.com/eaciit/knot/example/hello/views/"
+	appViewsPath = func() string {
+		d, _ := os.Getwd()
+		return d
+	}() + "/../example/hello/views/"
 )
 
 func init() {

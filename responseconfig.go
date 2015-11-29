@@ -7,7 +7,7 @@ import (
 type OutputType int
 
 const (
-	OutputTemplate OutputType = 1
+	OutputTemplate OutputType = 0
 	OutputHtml     OutputType = 10
 	OutputJson     OutputType = 100
 	OutputByte     OutputType = 1000
@@ -42,6 +42,7 @@ func NewResponseConfig() *ResponseConfig {
 	c := new(ResponseConfig)
 	c.Headers = map[string]string{}
 	c.IncludeFiles = []string{}
+	c.OutputType = DefaultOutputType
 	return c
 }
 
