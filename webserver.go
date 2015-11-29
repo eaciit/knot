@@ -135,7 +135,6 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 	fixUrlPath(&path, true, false)
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
-			s.Log().Info(fmt.Sprintf("%s %s OutputType:%s", r.URL.String(), r.RemoteAddr, cfg.OutputType.String()))
 			rcfg := NewResponseConfig()
 			*rcfg = *cfg
 			kr := new(Request)
@@ -143,6 +142,9 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 			kr.httpRequest = r
 			kr.responseConfig = rcfg
 			v := fnc(kr)
+			s.Log().Info(fmt.Sprintf("%s %s OutputType=%s",
+				r.URL.String(), r.RemoteAddr, kr.ResponseConfig().OutputType.String()))
+			kr.WriteCookie(w)
 			kr.Write(w, v)
 		} else {
 			w.Write([]byte(""))

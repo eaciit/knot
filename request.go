@@ -37,8 +37,8 @@ func (r *Request) HttpRequest() *http.Request {
 func (r *Request) ResponseConfig() *ResponseConfig {
 	if r.responseConfig == nil {
 		r.responseConfig = NewResponseConfig()
+		r.responseConfig.OutputType = DefaultOutputType
 	}
-	r.responseConfig.OutputType = DefaultOutputType
 	return r.responseConfig
 }
 

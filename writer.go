@@ -29,6 +29,14 @@ func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
 	return nil
 }
 
+func (r *Request) WriteCookie(w http.ResponseWriter) error {
+	cfg := r.ResponseConfig()
+	for _, c := range cfg.Cookies() {
+		http.SetCookie(w, c)
+	}
+	return nil
+}
+
 func (r *Request) WriteTemplate(w http.ResponseWriter, data interface{}) error {
 	var e error
 	cfg := r.ResponseConfig()
