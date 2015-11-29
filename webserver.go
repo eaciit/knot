@@ -119,10 +119,12 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 	fixUrlPath(&path, true, false)
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
+			rcfg := NewResponseConfig()
+			*rcfg = *cfg
 			kr := new(Request)
 			kr.server = s
 			kr.httpRequest = r
-			kr.responseConfig = cfg
+			kr.responseConfig = rcfg
 			v := fnc(kr)
 
 			eWrite := kr.Write(w, v)
