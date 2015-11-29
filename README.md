@@ -66,6 +66,71 @@ func main(){
 }
 ```
 
+## App Container
+By applying app container, we can host many go web based application and run it within a single instance of web server.
+
+```
+package main
+
+import (
+  // KnotApp Start
+  // include all namespace for application to be listed
+  _ "github.com/eaciit/knot/example/hello"
+  // KnotApp End
+)
+
+....
+
+func main() {
+  knot.DefaultOutputType = knot.OutputTemplate
+  appcontainer.Start(&appcontainer.Config{
+    Address: "localhost:9876",
+  })
+}
+```
+
+now we create knot application that will be read by above daemon
+```
+package hello
+
+import (
+  "github.com/eaciit/knot"
+  "github.com/eaciit/knot/appcontainer"
+  "github.com/eaciit/toolkit"
+  "os"
+  "time"
+)
+
+var (
+  //appViewsPath = "/Users/ariefdarmawan/goapp/src/github.com/eaciit/knot/example/hello/views/"
+  appViewsPath = func() string {
+    d, _ := os.Getwd()
+    return d
+  }() + "/../example/hello/views/"
+)
+
+//--- THIS FUNCTION IS IMPORTANT
+func init() {
+  app := appcontainer.NewApp("Hello")
+  app.ViewsPath = appViewsPath
+  app.Register(&WorldController{})
+  app.Static("static", "/Users/ariefdarmawan/Temp")
+  app.LayoutTemplate = "_template.html"
+  appcontainer.RegisterApp(app)
+}
+
+type WorldController struct {
+}
+
+// Will be autoregistered as http://appserver/hello/world/index
+// It will automatically read content from /views/world/index.html
+func (w *WorldController) Index(r *knot.Request) interface{} {
+  // r.ResponseConfig().ViewName = "someother_template.html" 
+  // unmark above line to change viewname
+  return struct{Message string}{"Hello from Knot"} 
+}
+```
+
 ## Undocumented Feature
 Below feature are available already on Knot, but not yet documented properly yet
 
