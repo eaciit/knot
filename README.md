@@ -139,3 +139,6 @@ Below feature are available already on Knot, but not yet documented properly yet
 - Json 
 - Multi application
 
+## Need to working on
+- Session
+
