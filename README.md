@@ -26,7 +26,7 @@ func main(){
   ks.Listen()
 }
 
-func Hi(r *knot.Request)interaface{}{
+func Hi(r *knot.Request)interface{}{
   return "Hello World!"
 }
 ```
