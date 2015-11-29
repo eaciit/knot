@@ -11,10 +11,12 @@ const (
 )
 
 type ResponseConfig struct {
-	AppName    string
-	ViewName   string
-	OutputType OutputType
-	Views      []string
+	AppName        string
+	ViewName       string
+	OutputType     OutputType
+	LayoutTemplate string
+	ViewsPath      string
+	IncludeFiles   []string
 
 	Headers map[string]string
 }
@@ -22,5 +24,6 @@ type ResponseConfig struct {
 func NewResponseConfig() *ResponseConfig {
 	c := new(ResponseConfig)
 	c.Headers = map[string]string{}
+	c.IncludeFiles = []string{}
 	return c
 }

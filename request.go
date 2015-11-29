@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"mime/multipart"
 	"net/http"
 )
@@ -95,38 +94,4 @@ func (r *Request) setHeaders(w http.ResponseWriter, data interface{}) {
 	for k, v := range cfg.Headers {
 		w.Header().Set(k, v)
 	}
-}
-
-func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
-	cfg := r.ResponseConfig()
-	if cfg.OutputType == OutputJson {
-		return r.WriteJson(w, data)
-	}
-
-	if cfg.OutputType == OutputByte {
-		fmt.Fprint(w, data)
-		return nil
-	}
-
-	w.Header().Set("Content-Type", "text/html")
-	if cfg.ViewName != "" {
-		for _, viewPath := range cfg.Views {
-			t, e := template.ParseGlob(viewPath + "/*.*")
-			if e != nil {
-				fmt.Fprint(w, e.Error())
-				return nil
-			}
-			t.Execute(w, data)
-		}
-	} else {
-		fmt.Fprint(w, data)
-		return nil
-	}
-
-	return nil
-}
-
-func (r *Request) WriteJson(w http.ResponseWriter, data interface{}) error {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	return json.NewEncoder(w).Encode(data)
 }

@@ -12,10 +12,10 @@ var (
 
 func init() {
 	app := appcontainer.NewApp("Hello")
+	app.ViewsPath = appViewsPath
 	app.Register(&WorldController{})
 	app.Static("static", "/Users/ariefdarmawan/Temp")
-	//app.View(toolkit.PathDefault(false) + "views")
-	app.View(appViewsPath)
+	app.LayoutTemplate = "_template.html"
 	appcontainer.RegisterApp(app)
 }
 
@@ -33,6 +33,6 @@ func (w *WorldController) Say(r *knot.Request) interface{} {
 }
 
 func (w *WorldController) Index(r *knot.Request) interface{} {
-	r.ResponseConfig().ViewName = appViewsPath + "template.html"
+	//r.ResponseConfig().ViewName = "hello.html"
 	return (toolkit.M{}).Set("message", "This is data passed to the template")
 }

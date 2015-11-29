@@ -96,6 +96,17 @@ func fixUrlPath(urlPath *string, preSlash, postSlash bool) {
 	*urlPath = path
 }
 
+func fixLogicalPath(logicalPath *string, preSlash, postSlash bool) {
+	path := strings.ToLower(*logicalPath)
+	if preSlash && strings.HasPrefix(path, "/") == false {
+		path = "/" + path
+	}
+	if postSlash && strings.HasSuffix(path, "/") == false {
+		path += "/"
+	}
+	*logicalPath = path
+}
+
 func (s *Server) RouteStatic(pathUrl, path string) {
 	_, ePath := os.Stat(path)
 	if ePath != nil {
@@ -117,6 +128,7 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 	fixUrlPath(&path, true, false)
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
+			s.Log().Info(fmt.Sprintf("%s %s", r.URL.String(), r.RemoteAddr))
 			rcfg := NewResponseConfig()
 			*rcfg = *cfg
 			kr := new(Request)
@@ -124,7 +136,6 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 			kr.httpRequest = r
 			kr.responseConfig = rcfg
 			v := fnc(kr)
-
 			eWrite := kr.Write(w, v)
 			if eWrite != nil {
 				fmt.Fprintln(w, eWrite.Error())

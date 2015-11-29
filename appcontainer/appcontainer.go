@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/eaciit/kingpin"
 	"github.com/eaciit/knot"
+	"io/ioutil"
+	"path/filepath"
 	"reflect"
 	"strings"
 	// -- KnotApp Registration Start
@@ -19,10 +21,11 @@ var (
 )
 
 type App struct {
-	Name   string
-	Enable bool
+	Name           string
+	Enable         bool
+	LayoutTemplate string
+	ViewsPath      string
 
-	views       []string
 	controllers map[string]interface{}
 	statics     map[string]string
 }
@@ -46,6 +49,10 @@ func (a *App) Statics() map[string]string {
 }
 
 func (a *App) Static(prefix, path string) {
+	if path == "" {
+		delete(a.Statics(), prefix)
+		return
+	}
 	a.Statics()[prefix] = path
 }
 
@@ -54,13 +61,6 @@ func (a *App) Controllers() map[string]interface{} {
 		a.controllers = map[string]interface{}{}
 	}
 	return a.controllers
-}
-
-func (a *App) View(s string) {
-	if a.views == nil {
-		a.views = []string{}
-	}
-	a.views = append(a.views, s)
 }
 
 func NewApp(name string) *App {
@@ -78,6 +78,23 @@ func RegisterApp(app *App) {
 	apps[app.Name] = app
 }
 
+func getIncludeFiles(dirname string) []string {
+	fis, e := ioutil.ReadDir(dirname)
+	if e != nil {
+		return []string{}
+	}
+
+	files := []string{}
+	for _, fi := range fis {
+		if fi.IsDir() {
+			files = append(files, getIncludeFiles(filepath.Join(dirname, fi.Name()))...)
+		} else if strings.HasPrefix(fi.Name(), "_") { //--- include is file started with _
+			files = append(files, fi.Name())
+		}
+	}
+	return files
+}
+
 func Start(c *Config) {
 	if ks == nil {
 		ks = new(knot.Server)
@@ -91,11 +108,17 @@ func Start(c *Config) {
 			appname = strings.Replace(appname, " ", "", 0)
 		}
 		//-- end of regex
+		includes := []string{}
+		if app.ViewsPath != "" {
+			includes = getIncludeFiles(app.ViewsPath)
+		}
 		ks.Log().Info("Scan application " + appname + " for controller registration")
 		for _, controller := range app.Controllers() {
 			ks.RegisterWithConfig(controller, appname, &knot.ResponseConfig{
-				AppName: k,
-				Views:   app.views,
+				AppName:        k,
+				ViewsPath:      app.ViewsPath,
+				LayoutTemplate: app.LayoutTemplate,
+				IncludeFiles:   includes,
 			})
 		}
 
