@@ -114,7 +114,7 @@ func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
 			t, e := template.ParseGlob(viewPath)
 			if e != nil {
 				fmt.Fprint(w, e.Error())
-				return
+				return nil
 			}
 			t.Execute(w, data)
 		}
@@ -122,6 +122,8 @@ func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
 		fmt.Fprint(w, data)
 		return nil
 	}
+
+	return nil
 }
 
 func (r *Request) WriteJson(w http.ResponseWriter, data interface{}) error {
