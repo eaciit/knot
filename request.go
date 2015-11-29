@@ -111,7 +111,7 @@ func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
 	w.Header().Set("Content-Type", "text/html")
 	if cfg.ViewName != "" {
 		for _, viewPath := range cfg.Views {
-			t, e := template.ParseGlob(viewPath)
+			t, e := template.ParseGlob(viewPath + "/*.*")
 			if e != nil {
 				fmt.Fprint(w, e.Error())
 				return nil
