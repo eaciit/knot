@@ -65,3 +65,8 @@ func (w *WorldController) Session(r *knot.Request) interface{} {
 	r.SetSession("NameAndTime", "Arief Darmawan : "+time.Now().String())
 	return "Session value is " + s
 }
+
+func (w *WorldController) Json(r *knot.Request) interface{} {
+	r.ResponseConfig().OutputType = knot.OutputJson
+	return struct{ ID, Title string }{"JsonID 00001", "Json Row 01 - Title"}
+}

@@ -131,14 +131,25 @@ func (w *WorldController) Index(r *knot.Request) interface{} {
 }
 ```
 
+## Handling Session
+
+```
+type TestController struct{
+}
+
+func (c *TestController) Session(r *knot.Request) interface{}{
+    t0 := time.Now()
+    visitLength := r.Session("VisitLength", 0).(int)
+    newVisitLength = visitLength + int(time.Since(t0))
+    r.SetSession("VisitLength",newVisitLength)
+    return fmt.Sprintf("Old length: %v, new length: %v", time.Duration(visitLenght), time.Duration(newVisitLength))
+}
+```
+
 ## Undocumented Feature
 Below feature are available already on Knot, but not yet documented properly yet
 
-- Cookie
 - Template
 - Json 
 - Multi application
-
-## Need to working on
-- Session
 
