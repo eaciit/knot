@@ -7,19 +7,19 @@ Most of the time our application will be proxied by Nginx, and to be honest, it 
 
 # Usage
 Load knot
-```
+```go
 go get -u github.com/eaciit/knot
 ```
 ## FnContent
 In knot, we handle function based on FnContent contract. Where contract of FnContent is as follow
-```
+```go
 var FnContent func(*knot.Request)interface{}
 ```
 knot.Request is wrapper of KnotServer object, HttpRequest and other related context of Knot. Any data returned by this function will be used as body of the response.
 
 ## Route 
 Route to a function handler
-```
+```go
 func main(){
   ks := new(knot.Server)
   ks.Route("hi",Hi)
@@ -32,7 +32,7 @@ func Hi(r *knot.Request)interface{}{
 ```
 
 Route to static folder
-```
+```go
 ks.RouteStatic("static","/Users/ariefdarmawan/Temp/knot/app1/static")
 ```
 
@@ -40,7 +40,7 @@ ks.RouteStatic("static","/Users/ariefdarmawan/Temp/knot/app1/static")
 Controller is a struct with sets of FnContent. Knot have ability to scan registered controller for FnContent function and autoregister them
 
 Below code will define controller called as Hello with 3 functions: Morning, Evening and Night. But since Morning and Evening are only function match with FnContent contract, those 2 functions will be registered as RouteHandler.
-```
+```go
 // here is our controller
 type Hello struct{
 }
@@ -69,7 +69,7 @@ func main(){
 ## App Container
 By applying app container, we can host many go web based application and run it within a single instance of web server.
 
-```
+```go
 package main
 
 import (
@@ -90,7 +90,7 @@ func main() {
 ```
 
 now we need to create knot application that will be read by above daemon
-```
+```go
 package hello
 
 import (
@@ -133,7 +133,7 @@ func (w *WorldController) Index(r *knot.Request) interface{} {
 
 ## Handling Session
 
-```
+```go
 type TestController struct{
 }
 
