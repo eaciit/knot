@@ -147,8 +147,9 @@ func (c *TestController) Session(r *knot.Request) interface{}{
 ```
 
 ## Undocumented Feature
-Below feature are available already on Knot, but not yet documented properly yet
+Below feature are available already on Knot, but not documented properly yet
 
+- Cookie
 - Template
 - Json 
 - Multi application
