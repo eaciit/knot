@@ -1,9 +1,9 @@
 # knot
-Knot is a web server and application container for Golang Web Based App. It still on experimental version
+Knot is a web server and application container for Golang Web Based App. It is still on experimental version
 
 # Background
 I've been working with Golang for sometime. While some stack are build on either command line or REST, I always use web based application as main UI. 
-Most of the time our application will be proxied by Nginx, and to be honest, it is complicated effort, because we have to change nginx config file and restart it whenever we have new application developed. These then inspired me to build Knot.
+Most of the time, our application will be proxied by Nginx, and to be honest, it is complicated effort, because we have to change nginx config file and restart it whenever we have new application developed. These then inspired me to build Knot.
 
 # Usage
 ## Load Knot
@@ -138,8 +138,7 @@ Now we need to create knot application that will be read by above daemon
 package hello
 
 import (
-  "github.com/eaciit/knot"
-  "github.com/eaciit/knot/appcontainer"
+  "github.com/eaciit/knot/knot.v1"
   "github.com/eaciit/toolkit"
   "os"
   "time"
@@ -153,26 +152,34 @@ var (
   }() + "/../example/hello/views/"
 )
 
-//--- THIS FUNCTION IS IMPORTANT
 func init() {
-  app := appcontainer.NewApp("Hello")
+  app := knot.NewApp("Hello")
   app.ViewsPath = appViewsPath
   app.Register(&WorldController{})
   app.Static("static", "/Users/ariefdarmawan/Temp")
   app.LayoutTemplate = "_template.html"
-  appcontainer.RegisterApp(app)
+  knot.RegisterApp(app)
 }
 
 type WorldController struct {
 }
 
-// Will be autoregistered as http://appserver/hello/world/index
-// It will automatically read content from /views/world/index.html
-func (w *WorldController) Index(r *knot.WebContext) interface{} {
-  // r.ResponseConfig().ViewName = "someother_template.html" 
-  // unmark above line to change viewname
-  return struct{Message string}{"Hello from Knot"} 
+func (w *WorldController) Say(r *knot.WebContext) interface{} {
+  r.Config.OutputType = knot.OutputHtml
+  s := "<b>Hello World</b>&nbsp;"
+  name := r.Query("name")
+  if name != "" {
+    s = s + " " + name
+  }
+  s += "</br>"
+  return s
 }
+
+func (w *WorldController) Index(r *knot.WebContext) interface{} {
+  r.Config.ViewName = "hello.html"
+  return (toolkit.M{}).Set("message", "This data is sent to knot controller method")
+}
+...
 ```
 
 ## Handling Session
