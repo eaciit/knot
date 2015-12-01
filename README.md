@@ -6,27 +6,29 @@ I've been working with Golang for sometime. While some stack are build on either
 Most of the time our application will be proxied by Nginx, and to be honest, it is complicated effort, because we have to change nginx config file and restart it whenever we have new application developed. These then inspired me to build Knot.
 
 # Usage
-Load knot
+## Load Knot
 ```go
 go get -u github.com/eaciit/knot
 ```
+
 ## FnContent
 In knot, we handle function based on FnContent contract. Where contract of FnContent is as follow
 ```go
-var FnContent func(*knot.Request)interface{}
+var FnContent func(*WebContext)interface{}
 ```
-knot.Request is wrapper of KnotServer object, HttpRequest and other related context of Knot. Any data returned by this function will be used as body of the response.
+knot.WebContext is wrapper of KnotServer object, HttpRequest, Writer and other related context of Knot. Any data returned by this function will be used as body of the response depend on OutputType defined.
 
 ## Route 
-Route to a function handler
+To do routing in knot, is simply by invoke Route function
 ```go
 func main(){
+  knot.DefaultOutputType = knot.OutputHtml
   ks := new(knot.Server)
   ks.Route("hi",Hi)
   ks.Listen()
 }
 
-func Hi(r *knot.Request)interface{}{
+func Hi(r *knot.WebContext)interface{}{
   return "Hello World!"
 }
 ```
@@ -36,7 +38,33 @@ Route to static folder
 ks.RouteStatic("static","/Users/ariefdarmawan/Temp/knot/app1/static")
 ```
 
-## Register a controller
+## Start Knot as Single App Container
+Below code will run knot on locahost:13000 and add 2 web method / and  /stop
+
+### Manual Route
+```go
+package main
+
+import (
+  . "github.com/eaciit/knot/knot.v1"
+)
+
+func main() {
+  ks := new(Server)
+  ks.Address = "localhost:13000"
+  DefaultOutputType = OutputHtml
+  ks.Route("/", func(wc *WebContext) interface{} {
+    return "Welcome to Knot Server"
+  })
+  ks.Route("/stop", func(wc *WebContext) interface{} {
+    defer wc.Server.Stop()
+    return "Server will be stopped. Bye"
+  })
+  ks.Listen()
+}
+```
+
+### AutoRoute
 Controller is a struct with sets of FnContent. Knot have ability to scan registered controller for FnContent function and autoregister them
 
 Below code will define controller called as Hello with 3 functions: Morning, Evening and Night. But since Morning and Evening are only function match with FnContent contract, those 2 functions will be registered as RouteHandler.
@@ -46,12 +74,12 @@ type Hello struct{
 }
 
 // http://servername/hello/morning
-func (h *Hello) Morning(r *knot.Request) interface{}{
+func (h *Hello) Morning(r *knot.WebContext) interface{}{
   return "Good morning"
 }
 
 // http://servername/hello/evening
-func (h *Hello) Evening(r *knot.Request) interface{}{
+func (h *Hello) Evening(r *knot.WebContext) interface{}{
   return "Good evening"
 }
 
@@ -66,30 +94,46 @@ func main(){
 }
 ```
 
-## App Container
-By applying app container, we can host many go web based application and run it within a single instance of web server.
+## Start Knot as Multi Application Container
+To run knot as Multiple Application Container we need to do following:
+- Register application to run in Application Container
+- Start the knot server
 
+### appcontainer
 ```go
 package main
 
 import (
+  "github.com/eaciit/kingpin"
+  "github.com/eaciit/knot/knot.v1"
+
   // KnotApp Start
-  // include all namespace for application to be listed
+  // This is where we need to write down all application namespace 
+  // need to be run
   _ "github.com/eaciit/knot/example/hello"
   // KnotApp End
 )
 
-....
+var (
+  ks          *knot.Server
+  flagAddress = kingpin.Flag("address",
+    "Address to be used by Knot Server. It normally formatted as SERVERNAME:PORTNUMBER").Default("localhost:9876").String()
+)
 
 func main() {
+  kingpin.Parse()
+
   knot.DefaultOutputType = knot.OutputTemplate
-  appcontainer.Start(&appcontainer.Config{
-    Address: "localhost:9876",
+
+  //--- it will run all application registered in namespace
+  knot.StartContainer(&knot.AppContainerConfig{
+    Address: *flagAddress,
   })
 }
 ```
 
-now we need to create knot application that will be read by above daemon
+### create knot application
+Now we need to create knot application that will be read by above daemon
 ```go
 package hello
 
@@ -124,7 +168,7 @@ type WorldController struct {
 
 // Will be autoregistered as http://appserver/hello/world/index
 // It will automatically read content from /views/world/index.html
-func (w *WorldController) Index(r *knot.Request) interface{} {
+func (w *WorldController) Index(r *knot.WebContext) interface{} {
   // r.ResponseConfig().ViewName = "someother_template.html" 
   // unmark above line to change viewname
   return struct{Message string}{"Hello from Knot"} 
@@ -132,12 +176,11 @@ func (w *WorldController) Index(r *knot.Request) interface{} {
 ```
 
 ## Handling Session
-
 ```go
 type TestController struct{
 }
 
-func (c *TestController) Session(r *knot.Request) interface{}{
+func (c *TestController) Session(r *knot.WebContext) interface{}{
     t0 := time.Now()
     visitLength := r.Session("VisitLength", 0).(int)
     newVisitLength = visitLength + int(time.Since(t0))

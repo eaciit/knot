@@ -26,7 +26,7 @@ func (s *Server) Log() *toolkit.LogEngine {
 	return s.log
 }
 
-type FnContent func(r *Request) interface{}
+type FnContent func(r *WebContext) interface{}
 
 func (s *Server) router() *mux.Router {
 	if s.mxrouter == nil {
@@ -66,7 +66,7 @@ func (s *Server) RegisterWithConfig(c interface{}, prefix string, cfg *ResponseC
 		// validate if this method match FnContent
 		isFnContent := false
 		tm := method.Type
-		if tm.NumIn() == 2 && tm.In(1).String() == "*knot.Request" {
+		if tm.NumIn() == 2 && tm.In(1).String() == "*knot.WebContext" {
 			if tm.NumOut() == 1 && tm.Out(0).Kind() == reflect.Interface {
 				isFnContent = true
 			}
@@ -74,10 +74,9 @@ func (s *Server) RegisterWithConfig(c interface{}, prefix string, cfg *ResponseC
 
 		if isFnContent {
 			var fnc FnContent
-			fnc = v.MethodByName(method.Name).Interface().(func(*Request) interface{})
+			fnc = v.MethodByName(method.Name).Interface().(func(*WebContext) interface{})
 			methodName := method.Name
 			handlerPath := path + strings.ToLower(methodName)
-			s.Log().Info(fmt.Sprintf("Registering handler for %s", handlerPath))
 			newcfg := NewResponseConfig()
 			*newcfg = *cfg
 			if newcfg.OutputType == OutputTemplate && newcfg.ViewName == "" {
@@ -133,19 +132,24 @@ func (s *Server) Route(path string, fnc FnContent) {
 
 func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig) {
 	fixUrlPath(&path, true, false)
+	s.Log().Info(fmt.Sprintf("Registering handler for %s", path))
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		if fnc != nil {
 			rcfg := NewResponseConfig()
 			*rcfg = *cfg
-			kr := new(Request)
-			kr.server = s
-			kr.httpRequest = r
-			kr.responseConfig = rcfg
+			kr := new(WebContext)
+			kr.Server = s
+			kr.Request = r
+			kr.Writer = w
+			kr.Config = rcfg
+			if int(rcfg.OutputType) == 0 {
+				rcfg.OutputType = DefaultOutputType
+			}
+			s.Log().Info(fmt.Sprintf("%s %s",
+				r.URL.String(), r.RemoteAddr))
 			v := fnc(kr)
-			s.Log().Info(fmt.Sprintf("%s %s OutputType=%s",
-				r.URL.String(), r.RemoteAddr, kr.ResponseConfig().OutputType.String()))
-			kr.WriteCookie(w)
-			kr.Write(w, v)
+			kr.WriteCookie()
+			kr.Write(v)
 		} else {
 			w.Write([]byte(""))
 		}

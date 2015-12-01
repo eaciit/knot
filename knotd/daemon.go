@@ -2,8 +2,7 @@ package main
 
 import (
 	"github.com/eaciit/kingpin"
-	"github.com/eaciit/knot"
-	"github.com/eaciit/knot/appcontainer"
+	"github.com/eaciit/knot/knot.v1"
 
 	// KnotApp Start
 	_ "github.com/eaciit/knot/example/hello"
@@ -20,7 +19,7 @@ func main() {
 	kingpin.Parse()
 
 	knot.DefaultOutputType = knot.OutputTemplate
-	appcontainer.Start(&appcontainer.Config{
+	knot.StartContainer(&knot.AppContainerConfig{
 		Address: *flagAddress,
 	})
 }

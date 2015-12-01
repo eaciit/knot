@@ -1,9 +1,7 @@
-package appcontainer
+package knot
 
 import (
 	"fmt"
-	"github.com/eaciit/kingpin"
-	"github.com/eaciit/knot"
 	"io/ioutil"
 	//"os"
 	"path/filepath"
@@ -15,10 +13,6 @@ import (
 
 var (
 	apps = map[string]*App{}
-	ks   *knot.Server
-
-	flagAddress = kingpin.Flag("address",
-		"Address to be used by Knot Server. It normally formatted as SERVERNAME:PORTNUMBER").Default("localhost:9876").String()
 )
 
 type App struct {
@@ -71,7 +65,7 @@ func NewApp(name string) *App {
 	return app
 }
 
-type Config struct {
+type AppContainerConfig struct {
 	Address string
 }
 
@@ -96,10 +90,8 @@ func getIncludeFiles(dirname string) []string {
 	return files
 }
 
-func Start(c *Config) {
-	if ks == nil {
-		ks = new(knot.Server)
-	}
+func StartContainer(c *AppContainerConfig) *Server {
+	ks := new(Server)
 	ks.Address = c.Address
 
 	for k, app := range apps {
@@ -115,7 +107,7 @@ func Start(c *Config) {
 		}
 		ks.Log().Info("Scan application " + appname + " for controller registration")
 		for _, controller := range app.Controllers() {
-			ks.RegisterWithConfig(controller, appname, &knot.ResponseConfig{
+			ks.RegisterWithConfig(controller, appname, &ResponseConfig{
 				AppName:        k,
 				ViewsPath:      app.ViewsPath,
 				LayoutTemplate: app.LayoutTemplate,
@@ -129,33 +121,20 @@ func Start(c *Config) {
 		}
 	}
 
-	ks.Route("/status", Status)
-	ks.Route("/stop", StopServer)
+	ks.Route("/status", statusContainer)
+	ks.Route("/stop", stopContainer)
 	//ks.Route("/p", ShowPage)
 	ks.Listen()
+
+	return ks
 }
 
-/*
-func ShowPage(r *knot.Request) interface{} {
-	//r.ResponseConfig().OutputType = knot.OutputHtml
-	wd, _ := os.Getwd()
-	s := r.Query("v")
-	b := r.Query("b")
-	dirname := filepath.Join(wd, b) + "/"
-	includes := getIncludeFiles(dirname)
-	r.ResponseConfig().IncludeFiles = includes
-	r.ResponseConfig().ViewsPath = dirname
-	r.ResponseConfig().ViewName = s
-	return ""
-}
-*/
-
-func StopServer(r *knot.Request) interface{} {
-	r.Server().Stop()
-	return nil
+func stopContainer(r *WebContext) interface{} {
+	defer r.Server.Stop()
+	return "Knot Server (" + r.Server.Address + ") will be stopped. Bye"
 }
 
-func Status(r *knot.Request) interface{} {
-	str := "Knot Server v0.8 (c) Eaciit"
+func statusContainer(r *WebContext) interface{} {
+	str := "Knot Server v1.0 (c) Eaciit"
 	return str
 }

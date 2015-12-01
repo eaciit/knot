@@ -46,9 +46,9 @@ func (s Sessions) Get(tokenid, key string, def interface{}) interface{} {
 	return s[tokenid].Get(key, def)
 }
 
-func getSessionTokenIdFromCookie(r *Request) string {
+func getSessionTokenIdFromCookie(r *WebContext) string {
 	tokenId := ""
-	c, _ := r.Cookie(SessionCookieId())
+	c, _ := r.Cookie(SessionCookieId(), "")
 	if c == nil {
 		tokenId = toolkit.GenerateRandomString("", 32)
 		r.SetCookie(SessionCookieId(), tokenId, time.Hour*24*30)
@@ -58,7 +58,7 @@ func getSessionTokenIdFromCookie(r *Request) string {
 	return tokenId
 }
 
-func (r *Request) Session(key string, defs ...interface{}) interface{} {
+func (r *WebContext) Session(key string, defs ...interface{}) interface{} {
 	InitSessions()
 	tokenId := getSessionTokenIdFromCookie(r)
 	var def interface{}
@@ -68,7 +68,7 @@ func (r *Request) Session(key string, defs ...interface{}) interface{} {
 	return sessions.Get(tokenId, key, def)
 }
 
-func (r *Request) SetSession(key string, value interface{}) {
+func (r *WebContext) SetSession(key string, value interface{}) {
 	InitSessions()
 	tokenId := getSessionTokenIdFromCookie(r)
 	sessions.Set(tokenId, key, value)

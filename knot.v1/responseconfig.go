@@ -1,20 +1,21 @@
 package knot
 
-import (
-	"net/http"
-)
+import ()
 
 type OutputType int
 
 const (
-	OutputTemplate OutputType = 0
+	OutputNone     OutputType = 1
+	OutputTemplate OutputType = 2
 	OutputHtml     OutputType = 10
 	OutputJson     OutputType = 100
 	OutputByte     OutputType = 1000
 )
 
 func (o OutputType) String() string {
-	if o == OutputTemplate {
+	if o == OutputNone {
+		return "None"
+	} else if o == OutputTemplate {
 		return "Template"
 	} else if o == OutputHtml {
 		return "HTML"
@@ -33,9 +34,7 @@ type ResponseConfig struct {
 	LayoutTemplate string
 	ViewsPath      string
 	IncludeFiles   []string
-
-	Headers map[string]string
-	cookies map[string]*http.Cookie
+	Headers        map[string]string
 }
 
 func NewResponseConfig() *ResponseConfig {
@@ -44,11 +43,4 @@ func NewResponseConfig() *ResponseConfig {
 	c.IncludeFiles = []string{}
 	c.OutputType = DefaultOutputType
 	return c
-}
-
-func (r *ResponseConfig) Cookies() map[string]*http.Cookie {
-	if r.cookies == nil {
-		r.cookies = map[string]*http.Cookie{}
-	}
-	return r.cookies
 }

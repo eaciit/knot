@@ -1,8 +1,7 @@
 package hello
 
 import (
-	"github.com/eaciit/knot"
-	"github.com/eaciit/knot/appcontainer"
+	"github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
 	"os"
 	"time"
@@ -17,19 +16,19 @@ var (
 )
 
 func init() {
-	app := appcontainer.NewApp("Hello")
+	app := knot.NewApp("Hello")
 	app.ViewsPath = appViewsPath
 	app.Register(&WorldController{})
 	app.Static("static", "/Users/ariefdarmawan/Temp")
 	app.LayoutTemplate = "_template.html"
-	appcontainer.RegisterApp(app)
+	knot.RegisterApp(app)
 }
 
 type WorldController struct {
 }
 
-func (w *WorldController) Say(r *knot.Request) interface{} {
-	r.ResponseConfig().OutputType = knot.OutputHtml
+func (w *WorldController) Say(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputHtml
 	s := "<b>Hello World</b>&nbsp;"
 	name := r.Query("name")
 	if name != "" {
@@ -39,16 +38,16 @@ func (w *WorldController) Say(r *knot.Request) interface{} {
 	return s
 }
 
-func (w *WorldController) Index(r *knot.Request) interface{} {
-	//r.ResponseConfig().ViewName = "hello.html"
+func (w *WorldController) Index(r *knot.WebContext) interface{} {
+	//r.Config.ViewName = "hello.html"
 	return (toolkit.M{}).Set("message", "This is data passed to the template")
 }
 
-func (w *WorldController) Cookie(r *knot.Request) interface{} {
-	r.ResponseConfig().OutputType = knot.OutputHtml
+func (w *WorldController) Cookie(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputHtml
 	cvalue := ""
 	cookiename := "mycookie"
-	c, _ := r.Cookie(cookiename)
+	c, _ := r.Cookie(cookiename, "")
 	if c == nil {
 		r.SetCookie(cookiename, "Arief Darmawan", 30*24*time.Hour)
 	} else {
@@ -59,14 +58,14 @@ func (w *WorldController) Cookie(r *knot.Request) interface{} {
 	return "Cookie value is " + cvalue
 }
 
-func (w *WorldController) Session(r *knot.Request) interface{} {
-	r.ResponseConfig().OutputType = knot.OutputHtml
+func (w *WorldController) Session(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputHtml
 	s := r.Session("NameAndTime", "").(string)
 	r.SetSession("NameAndTime", "Arief Darmawan : "+time.Now().String())
 	return "Session value is " + s
 }
 
-func (w *WorldController) Json(r *knot.Request) interface{} {
-	r.ResponseConfig().OutputType = knot.OutputJson
+func (w *WorldController) Json(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputJson
 	return struct{ ID, Title string }{"JsonID 00001", "Json Row 01 - Title"}
 }

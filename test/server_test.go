@@ -1,11 +1,29 @@
-package knot
+package test
 
 import (
 	//"fmt"
+	. "github.com/eaciit/knot/knot.v1"
 	"github.com/eaciit/toolkit"
 	"net/http"
 	"testing"
 )
+
+var ks *Server = new(Server)
+
+func init() {
+	ks.Address = ":13000"
+	DefaultOutputType = OutputHtml
+	ks.Route("/", func(wc *WebContext) interface{} {
+		return "Welcome to Knot Server"
+	})
+	ks.Route("/stop", func(wc *WebContext) interface{} {
+		defer wc.Server.Stop()
+		return "Server will be stopped. Bye"
+	})
+	go func() {
+		ks.Listen()
+	}()
+}
 
 func call(url string) (*http.Response, error) {
 	surl := "http://localhost:13000" + url
@@ -26,8 +44,9 @@ func TestServer(t *testing.T) {
 	}
 
 	str := toolkit.HttpContentString(r)
-	if str != "Welcome to Sebar Server" {
-		t.Errorf("Invalid return")
+	want := "Welcome to Knot Server"
+	if str != want {
+		t.Errorf("Invalid return. Expecting %s got %s", want, str)
 	}
 }
 

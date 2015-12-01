@@ -11,35 +11,38 @@ import (
 	"strings"
 )
 
-func (r *Request) Write(w http.ResponseWriter, data interface{}) error {
-	cfg := r.ResponseConfig()
-	if cfg.OutputType == OutputTemplate {
-		return r.WriteError(w, r.WriteTemplate(w, data))
+func (r *WebContext) Write(data interface{}) error {
+	if int(r.Config.OutputType) == 0 {
+		r.Config.OutputType = DefaultOutputType
 	}
 
-	if cfg.OutputType == OutputJson {
-		return r.WriteError(w, r.WriteJson(w, data))
+	if r.Config.OutputType == OutputTemplate {
+		return r.WriteError(r.WriteTemplate(data))
 	}
 
-	if cfg.OutputType == OutputByte || cfg.OutputType == OutputHtml {
-		fmt.Fprint(w, data)
+	if r.Config.OutputType == OutputJson {
+		return r.WriteError(r.WriteJson(data))
+	}
+
+	if r.Config.OutputType == OutputByte || r.Config.OutputType == OutputHtml {
+		fmt.Fprint(r.Writer, data)
 		return nil
 	}
 
 	return nil
 }
 
-func (r *Request) WriteCookie(w http.ResponseWriter) error {
-	cfg := r.ResponseConfig()
-	for _, c := range cfg.Cookies() {
-		http.SetCookie(w, c)
+func (r *WebContext) WriteCookie() error {
+	for _, c := range r.Cookies() {
+		http.SetCookie(r.Writer, c)
 	}
 	return nil
 }
 
-func (r *Request) WriteTemplate(w http.ResponseWriter, data interface{}) error {
+func (r *WebContext) WriteTemplate(data interface{}) error {
 	var e error
-	cfg := r.ResponseConfig()
+	w := r.Writer
+	cfg := r.Config
 	//w.Header().Set("Content-Type", "text/html")
 	if cfg.ViewName != "" {
 		useLayout := false
@@ -70,13 +73,13 @@ func (r *Request) WriteTemplate(w http.ResponseWriter, data interface{}) error {
 			return e
 		}
 	} else {
-		return fmt.Errorf("No template define for %s", strings.ToLower(r.httpRequest.URL.String()))
+		return fmt.Errorf("No template define for %s", strings.ToLower(r.Request.URL.String()))
 	}
 	return nil
 }
 
-func (r *Request) writeToTemplate(w io.Writer, data interface{}, templateFile string) error {
-	cfg := r.ResponseConfig()
+func (r *WebContext) writeToTemplate(w io.Writer, data interface{}, templateFile string) error {
+	cfg := r.Config
 	viewsPath := cfg.ViewsPath
 	viewFile := viewsPath + templateFile
 	bs, e := ioutil.ReadFile(viewFile)
@@ -125,17 +128,18 @@ func (r *Request) writeToTemplate(w io.Writer, data interface{}, templateFile st
 	return nil
 }
 
-func (r *Request) WriteJson(w http.ResponseWriter, data interface{}) error {
+func (r *WebContext) WriteJson(data interface{}) error {
+	w := r.Writer
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	return json.NewEncoder(w).Encode(data)
+	return json.NewEncoder(r.Writer).Encode(data)
 }
 
-func (r *Request) WriteError(w http.ResponseWriter, e error) error {
+func (r *WebContext) WriteError(e error) error {
 	if e != nil {
 		errorString := e.Error()
-		hr := r.HttpRequest()
-		r.Server().Log().Error(fmt.Sprintf("%s %s Error: %s", hr.URL.String(), hr.RemoteAddr, errorString))
-		fmt.Fprint(w, errorString)
+		hr := r.Request
+		r.Server.Log().Error(fmt.Sprintf("%s %s Error: %s", hr.URL.String(), hr.RemoteAddr, errorString))
+		fmt.Fprint(r.Writer, errorString)
 	}
 	return e
 }
