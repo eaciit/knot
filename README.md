@@ -213,8 +213,6 @@ func (w *WorldController) Cookie(r *knot.WebContext) interface{} {
 ## Undocumented Feature
 Below feature are available already on Knot, but not documented properly yet
 
-- Cookie
 - Template
 - Json 
-- Multi application
 
