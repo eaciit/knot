@@ -39,8 +39,8 @@ func (w *WorldController) Say(r *knot.WebContext) interface{} {
 }
 
 func (w *WorldController) Index(r *knot.WebContext) interface{} {
-	//r.Config.ViewName = "hello.html"
-	return (toolkit.M{}).Set("message", "This is data passed to the template")
+	r.Config.ViewName = "hello.html"
+	return (toolkit.M{}).Set("message", "This data is sent to knot controller method")
 }
 
 func (w *WorldController) Cookie(r *knot.WebContext) interface{} {
@@ -49,10 +49,10 @@ func (w *WorldController) Cookie(r *knot.WebContext) interface{} {
 	cookiename := "mycookie"
 	c, _ := r.Cookie(cookiename, "")
 	if c == nil {
-		r.SetCookie(cookiename, "Arief Darmawan", 30*24*time.Hour)
+		r.SetCookie(cookiename, "Arief Darmawan : ", 30*24*time.Hour)
 	} else {
 		cvalue = c.Value
-		c.Value = "Arief Darmawan" + time.Now().String()
+		c.Value = "Arief Darmawan : " + time.Now().String()
 		c.Expires = time.Now().Add(24 * 30 * time.Hour)
 	}
 	return "Cookie value is " + cvalue

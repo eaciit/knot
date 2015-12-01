@@ -189,6 +189,27 @@ func (c *TestController) Session(r *knot.WebContext) interface{}{
 }
 ```
 
+## Handling Cookie
+```go
+type WorldController struct{
+}
+
+func (w *WorldController) Cookie(r *knot.WebContext) interface{} {
+  r.Config.OutputType = knot.OutputHtml
+  cvalue := ""
+  cookiename := "mycookie"
+  c, _ := r.Cookie(cookiename, "")
+  if c == nil {
+    r.SetCookie(cookiename, "Arief Darmawan ", 30*24*time.Hour)
+  } else {
+    cvalue = c.Value
+    c.Value = "Arief Darmawan " + time.Now().String()
+    c.Expires = time.Now().Add(24 * 30 * time.Hour)
+  }
+  return "Cookie value is " + cvalue
+}
+```
+
 ## Undocumented Feature
 Below feature are available already on Knot, but not documented properly yet
 
