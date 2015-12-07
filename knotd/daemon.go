@@ -5,7 +5,8 @@ import (
 	"github.com/eaciit/knot/knot.v1"
 
 	// KnotApp Start
-	_ "github.com/eaciit/knot/example/hello"
+	//_ "github.com/eaciit/knot/example/hello"
+	_ "github.com/eaciit/webtemplate"
 	// KnotApp End
 )
 

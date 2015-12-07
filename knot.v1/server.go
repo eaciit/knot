@@ -145,11 +145,12 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 			if int(rcfg.OutputType) == 0 {
 				rcfg.OutputType = DefaultOutputType
 			}
-			s.Log().Info(fmt.Sprintf("%s %s",
-				r.URL.String(), r.RemoteAddr))
+			s.Log().Info(fmt.Sprintf("%s %s", r.URL.String(), r.RemoteAddr))
 			v := fnc(kr)
-			kr.WriteCookie()
-			kr.Write(v)
+			if kr.Config.OutputType != OutputNone {
+				kr.WriteCookie()
+				kr.Write(v)
+			}
 		} else {
 			w.Write([]byte(""))
 		}
