@@ -79,11 +79,8 @@ func (s *Server) RegisterWithConfig(c interface{}, prefix string, cfg *ResponseC
 			handlerPath := path + strings.ToLower(methodName)
 			newcfg := NewResponseConfig()
 			*newcfg = *cfg
-			if newcfg.OutputType == OutputTemplate && newcfg.ViewName == "" {
-				newcfg.ViewName = strings.Join([]string{
-					strings.ToLower(controllerName),
-					strings.ToLower(methodName)}, "/") + ".html"
-			}
+			newcfg.ControllerName = controllerName
+			newcfg.MethodName = methodName
 			s.RouteWithConfig(handlerPath, fnc, newcfg)
 		}
 	}

@@ -73,6 +73,11 @@ func RegisterApp(app *App) {
 	apps[app.Name] = app
 }
 
+func GetApp(appname string) *App {
+	app, _ := apps[appname]
+	return app
+}
+
 func getIncludeFiles(dirname string) []string {
 	fis, e := ioutil.ReadDir(dirname)
 	if e != nil {
@@ -88,6 +93,39 @@ func getIncludeFiles(dirname string) []string {
 		}
 	}
 	return files
+}
+
+func StartApp(app *App, address string) *Server {
+	ks := new(Server)
+	ks.Address = address
+
+	//appname := app.Name
+	//-- end of regex
+	includes := []string{}
+	if app.ViewsPath != "" {
+		includes = getIncludeFiles(app.ViewsPath)
+	}
+	ks.Log().Info("Scan application " + app.Name + " for controller registration")
+	for _, controller := range app.Controllers() {
+		ks.RegisterWithConfig(controller, "", &ResponseConfig{
+			//AppName:        appname,
+			ViewsPath:      app.ViewsPath,
+			LayoutTemplate: app.LayoutTemplate,
+			IncludeFiles:   includes,
+		})
+	}
+
+	for surl, spath := range app.Statics() {
+		staticUrlPrefix := "/" + surl
+		ks.RouteStatic(staticUrlPrefix, spath)
+	}
+
+	ks.Route("/status", statusContainer)
+	ks.Route("/stop", stopContainer)
+	//ks.Route("/p", ShowPage)
+	ks.Listen()
+
+	return ks
 }
 
 func StartContainer(c *AppContainerConfig) *Server {

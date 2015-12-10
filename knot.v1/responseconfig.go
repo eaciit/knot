@@ -29,6 +29,8 @@ func (o OutputType) String() string {
 
 type ResponseConfig struct {
 	AppName        string
+	ControllerName string
+	MethodName     string
 	ViewName       string
 	OutputType     OutputType
 	LayoutTemplate string

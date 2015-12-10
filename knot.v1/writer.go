@@ -43,6 +43,15 @@ func (r *WebContext) WriteTemplate(data interface{}) error {
 	var e error
 	w := r.Writer
 	cfg := r.Config
+
+	if cfg.ViewName == "" {
+		cfg.ViewName = strings.Join([]string{
+			strings.ToLower(cfg.ControllerName),
+			strings.ToLower(cfg.MethodName)}, "/") + ".html"
+	}
+
+	//viewFile := cfg.ViewsPath + cfg.ViewName
+
 	//w.Header().Set("Content-Type", "text/html")
 	if cfg.ViewName != "" {
 		useLayout := false

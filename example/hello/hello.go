@@ -38,6 +38,19 @@ func (w *WorldController) Say(r *knot.WebContext) interface{} {
 	return s
 }
 
+func (w *WorldController) TestForm1(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputHtml
+	m := toolkit.M{}
+	r.GetPayload(&m)
+	return toolkit.JsonString(m)
+}
+
+func (w *WorldController) TestForm2(r *knot.WebContext) interface{} {
+	r.Config.OutputType = knot.OutputHtml
+	data := r.Request.FormValue("Data")
+	return data
+}
+
 func (w *WorldController) Index(r *knot.WebContext) interface{} {
 	r.Config.ViewName = "hello.html"
 	return (toolkit.M{}).Set("message", "This data is sent to knot controller method")
