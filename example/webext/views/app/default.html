@@ -1,3 +1,16 @@
 <center>
-<h1>Default</h1>
+    <h1>Default Landing Page</h1>
 </center>
+
+<div id="content" style="margin:2px auto;padding:5px;background-color:#FFF;min-height:300px;width:95%">
+Please enter your name here <input type="text" style="width:300px">
+<br/>
+<input type="BUTTON" class="btn-primary" value="Submit Request">
+</div>
+
+<script>
+$(document).ready(function(){
+    height = $(window).height();
+    $("#content").height(height-60);
+})
+</script>

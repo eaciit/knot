@@ -3,13 +3,13 @@
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<script type="tjavascript" src="/static/kendoui/js/jquery.min.js"></script>
-	<script type="tjavascript" src="/static/kendoui/js/kendo.all.min.js"></script>
-	<script type="tjavascript" src="/static/bootstrap/js/bootstrap.min.js"></script>
-	<script type="tjavascript" src="/static/js/knockout.min.js"></script>
-	<script type="tjavascript" src="/static/js/ko-mapping.js"></script>
-	<script type="tjavascript" src="/static/js/knockout-kendo.min.js"></script>
-	<script type="tjavascript" src="/static/js/ec-common.js"></script>
+	<script src="/static/kendoui/js/jquery.min.js"></script>
+	<script src="/static/kendoui/js/kendo.all.min.js"></script>
+	<script src="/static/bootstrap/js/bootstrap.min.js"></script>
+	<script src="/static/js/knockout.min.js"></script>
+	<script src="/static/js/ko-mapping.js"></script>
+	<script src="/static/js/knockout-kendo.min.js"></script>
+	<script src="/static/js/ec-common.js"></script>
 	
 	<link href="/static/kendoui/styles/kendo.material.min.css" type="tcss" rel="stylesheet" />
 	<link href="/static/kendoui/styles/kendo.common-bootstrap.min.css" type="tcss" rel="stylesheet" />
@@ -23,7 +23,7 @@
 	<link rel="stylesheet" type="tcss" href="/static/theme/neon/form.css">
 	<link rel="stylesheet" type="tcss" href="/static/css/default.css">
 
-	<script type="tjavascript">
+	<script type="javascript">
 		var model = {
 			Processing : false
 		};
@@ -33,6 +33,10 @@
 
 
 {{.Content}}
+
+<script>
+ ko.applyBindings(model);
+</script>
 
 </body>
 </html>
