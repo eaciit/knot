@@ -1,9 +1,11 @@
 package knot
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 )
@@ -44,15 +46,32 @@ func (r *WebContext) Query(id string) string {
 	return r.Request.URL.Query().Get(id)
 }
 
+func (r *WebContext) Form(id string) string {
+	if r.Request == nil {
+		return ""
+	}
+	return r.Request.FormValue(id)
+}
+
 func (r *WebContext) GetPayload(result interface{}) error {
 	if r.Request == nil {
 		return errors.New("HttpRequest object is not properly setup")
 	}
 
-	body := r.Request.Body
-	defer body.Close()
-	decoder := json.NewDecoder(body)
-	return decoder.Decode(result)
+	bs, e := ioutil.ReadAll(r.Request.Body)
+	if e != nil {
+		return fmt.Errorf("Unable to read body: " + e.Error())
+	}
+	defer r.Request.Body.Close()
+
+	br := bytes.NewReader(bs)
+	decoder := json.NewDecoder(br)
+	edecode := decoder.Decode(result)
+	if edecode != nil {
+		return fmt.Errorf("Payload Decode Error: " + edecode.Error() + " .Bytes Data: " + string(bs))
+	} else {
+		return nil
+	}
 }
 
 func (r *WebContext) GetPayloadMultipart(result interface{}) (map[string][]*multipart.FileHeader,

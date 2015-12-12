@@ -107,20 +107,7 @@ func (r *WebContext) writeToTemplate(w io.Writer, data interface{}, templateFile
 			return base
 		},
 	}).Parse(string(bs))
-	/*
-		t.Funcs(template.FuncMap{
-			"BaseUrl": func() string {
-				base := "/"
-				if cfg.AppName != "" {
-					base += strings.ToLower(cfg.AppName)
-				}
-				if base != "/" {
-					base += "/"
-				}
-				return base
-			},
-		})
-	*/
+
 	for _, includeFile := range cfg.IncludeFiles {
 		if includeFile != cfg.LayoutTemplate && includeFile != templateFile {
 			includeFilePath := viewsPath + includeFile
