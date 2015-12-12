@@ -140,7 +140,11 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 			kr.Writer = w
 			kr.Config = rcfg
 			if int(rcfg.OutputType) == 0 {
-				rcfg.OutputType = DefaultOutputType
+				if rcfg.AppName == "" {
+					rcfg.OutputType = DefaultOutputType
+				} else {
+					rcfg.OutputType = apps[rcfg.AppName].DefaultOutputType
+				}
 			}
 			s.Log().Info(fmt.Sprintf("%s%s %s",
 				s.Address, r.URL.String(), r.RemoteAddr))

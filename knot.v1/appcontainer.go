@@ -16,10 +16,11 @@ var (
 )
 
 type App struct {
-	Name           string
-	Enable         bool
-	LayoutTemplate string
-	ViewsPath      string
+	Name              string
+	Enable            bool
+	LayoutTemplate    string
+	ViewsPath         string
+	DefaultOutputType OutputType
 
 	controllers map[string]interface{}
 	statics     map[string]string
@@ -62,6 +63,7 @@ func NewApp(name string) *App {
 	app := new(App)
 	app.Name = name
 	app.Enable = true
+	app.DefaultOutputType = DefaultOutputType
 	return app
 }
 
@@ -96,6 +98,7 @@ func getIncludeFiles(dirname string) []string {
 }
 
 func StartApp(app *App, address string) *Server {
+	DefaultOutputType = app.DefaultOutputType
 	ks := new(Server)
 	ks.Address = address
 
