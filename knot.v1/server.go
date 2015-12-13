@@ -146,9 +146,11 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 					rcfg.OutputType = apps[rcfg.AppName].DefaultOutputType
 				}
 			}
-			s.Log().Info(fmt.Sprintf("%s%s %s",
-				s.Address, r.URL.String(), r.RemoteAddr))
 			v := fnc(kr)
+			if kr.Config.NoLog == false {
+				s.Log().Info(fmt.Sprintf("%s%s %s",
+					s.Address, r.URL.String(), r.RemoteAddr))
+			}
 			kr.WriteCookie()
 			kr.Write(v)
 		} else {

@@ -36,6 +36,7 @@ type ResponseConfig struct {
 	LayoutTemplate string
 	ViewsPath      string
 	IncludeFiles   []string
+	NoLog          bool
 	Headers        map[string]string
 }
 
