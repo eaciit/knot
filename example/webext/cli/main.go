@@ -6,16 +6,9 @@ import (
 )
 
 func main() {
-	/*
-		knot.StartContainer(&knot.AppContainerConfig{
-			Address: "localhost:12345",
-		})
-	*/
-
 	app := knot.GetApp("ext")
 	if app == nil {
 		return
 	}
 	knot.StartApp(app, "localhost:12345")
-
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/eaciit/toolkit"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -72,6 +73,28 @@ func (r *WebContext) GetPayload(result interface{}) error {
 	} else {
 		return nil
 	}
+}
+
+func (r *WebContext) GetForms(result interface{}) error {
+	if r.Request == nil {
+		return errors.New("HttpRequest object is not properly setup")
+	}
+
+	m := toolkit.M{}
+	e := r.Request.ParseForm()
+	if e != nil {
+		return e
+	}
+	for k, v := range r.Request.Form {
+		//fmt.Println("Receiving form %s : %v \n", k, v)
+		if f, floatOk := toolkit.StringToFloat(v[0]); floatOk {
+			m.Set(k, f)
+		} else {
+			m.Set(k, v[0])
+		}
+	}
+	e = toolkit.Unjson(m.ToBytes("json", nil), result)
+	return e
 }
 
 func (r *WebContext) GetPayloadMultipart(result interface{}) (map[string][]*multipart.FileHeader,

@@ -62,6 +62,13 @@ func (a *AppController) Process(k *knot.WebContext) interface{} {
 
 func (a *AppController) ProcessForm(k *knot.WebContext) interface{} {
 	k.Config.OutputType = knot.OutputTemplate
-	nama := k.Form("nama")
-	return struct{ Nama string }{nama}
+	var model struct {
+		Nama string
+		Umur int
+	}
+	e := k.GetForms(&model)
+	if e != nil {
+		model.Nama = e.Error()
+	}
+	return model
 }
