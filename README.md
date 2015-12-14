@@ -93,6 +93,35 @@ func main(){
   ks.Listen()
 }
 ```
+## Start Knot as Single Application
+To run knot as Single Application Container we need to do following:
+- Register application to run in Application Container
+- Start the app
+
+### appcontainer
+```go
+package main
+
+import (
+  "github.com/eaciit/kingpin"
+  "github.com/eaciit/knot/knot.v1"
+)
+
+type Hello struct{
+}
+
+func (h *Hello) Say(k *knot.WebContext) interface{}{
+    return "Hello World"
+}
+
+func main() {
+  app := knot.NewApplication("")
+  app.DefaultOutputType = knot.OutputHtml
+  app.Register(&Hello{})
+  app.RegisterApp(app)
+  knot.StartApp(app,"localhost:12345")
+}
+```
 
 ## Start Knot as Multi Application Container
 To run knot as Multiple Application Container we need to do following:
