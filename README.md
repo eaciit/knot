@@ -1,7 +1,5 @@
-# knot
-Knot is a web server and application container for Golang Web Based App. It is still on experimental version
-
 ![knot Logo](misc/knot-logo.png)
+Knot is a web server and application container for Golang Web Based App. It is still on experimental version
 
 # Background
 I've been working with Golang for sometime. While some stack are build on either command line or REST, I always use web based application as main UI. 
