@@ -138,7 +138,6 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 			kr.Server = s
 			kr.Request = r
 			kr.Writer = w
-			kr.cookies = map[string]*http.Cookie{}
 			kr.Config = rcfg
 			if int(rcfg.OutputType) == 0 {
 				if rcfg.AppName == "" {
