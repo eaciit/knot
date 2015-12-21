@@ -30,6 +30,9 @@ func (r *WebContext) SetCookie(name string, value string, expiresAfter time.Dura
 		c.Expires = time.Now().Add(expiresAfter)
 		c.Domain = u.Host
 	}
+	if r.cookies == nil {
+		r.cookies = map[string]*http.Cookie{}
+	}
 	r.cookies[name] = c
 }
 
