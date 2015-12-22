@@ -14,9 +14,12 @@ import (
 type Server struct {
 	Address string
 
-	mxrouter *mux.Router
-	log      *toolkit.LogEngine
-	status   chan string
+	mxrouter        *mux.Router
+	log             *toolkit.LogEngine
+	status          chan string
+	UseSSL          bool
+	CertificatePath string
+	PrivateKeyPath  string
 }
 
 func (s *Server) Log() *toolkit.LogEngine {
@@ -167,17 +170,49 @@ func (s *Server) GetHandler(path string) http.Handler {
 	return mr.GetHandler()
 }
 
+func (s *Server) GetAddress() string {
+	address := s.Address
+
+	// when using SSL enabled `http://` and `https://` need to be stripped,
+	// because it will make the routes unacessable
+	if strings.Contains(address, "https") {
+		return strings.Replace(address, "https://", "", -1)
+	} else if strings.Contains(address, "http") {
+		return strings.Replace(address, "http://", "", -1)
+	}
+
+	return address
+}
+
+func (s *Server) isReadyForSSL() bool {
+	if s.CertificatePath == "" || s.PrivateKeyPath == "" {
+		s.Log().Error("Both certificate.pem and privatekey.pem full path should be defined when using SSL")
+		return false
+	}
+
+	return true
+}
+
 func (s *Server) Listen() {
 	s.start()
 	s.listen()
 }
 
 func (s *Server) start() error {
-	addr := s.Address
+	addr := s.GetAddress()
 	s.status = make(chan string)
 	s.Log().Info("Start listening on server " + addr)
+
 	go func() {
-		http.ListenAndServe(addr, s.router())
+		if s.UseSSL {
+			if !s.isReadyForSSL() {
+				return
+			}
+
+			http.ListenAndServeTLS(addr, s.CertificatePath, s.PrivateKeyPath, s.router())
+		} else {
+			http.ListenAndServe(addr, s.router())
+		}
 	}()
 	return nil
 }
