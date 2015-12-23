@@ -10,7 +10,7 @@ func (h *Evening) Index(r *knot.WebContext) interface{} {
 
 	if sharedMessage != nil {
 		message := sharedMessage.(string)
-		// or `knot.GetSharedObject().GetDefaultValue("name", "").(string)`
+		// or `knot.GetSharedObject().GetWithDefaultValue("name", "").(string)`
 
 		return "There is message from /morning/index: " + message
 	} else {
