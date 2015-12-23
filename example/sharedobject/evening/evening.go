@@ -6,7 +6,14 @@ type Evening struct {
 }
 
 func (h *Evening) Index(r *knot.WebContext) interface{} {
-	message := "Accessing /evening/index. There is message from /morning/index: " +
-		knot.GetSharedObject().Get("name", "").(string)
-	return message
+	sharedMessage := knot.GetSharedObject().Get("name")
+
+	if sharedMessage != nil {
+		message := sharedMessage.(string)
+		// or `knot.GetSharedObject().GetWithDefaultValue("name", "").(string)`
+
+		return "There is message from /morning/index: " + message
+	} else {
+		return "Accessing /evening/index."
+	}
 }

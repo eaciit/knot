@@ -18,7 +18,15 @@ func GetSharedObject() *SharedObject {
 	return instance
 }
 
-func (s *SharedObject) Get(key string, defaultValue interface{}) interface{} {
+func (s *SharedObject) Get(key string) interface{} {
+	if data, isExist := s.data[key]; isExist {
+		return data
+	}
+
+	return nil
+}
+
+func (s *SharedObject) GetWithDefaultValue(key string, defaultValue interface{}) interface{} {
 	if data, isExist := s.data[key]; isExist {
 		return data
 	}
