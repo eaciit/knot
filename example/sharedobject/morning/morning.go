@@ -6,7 +6,7 @@ type Morning struct {
 }
 
 func (h *Morning) Index(r *knot.WebContext) interface{} {
-	knot.GetSharedObject().Set("name", "yo")
+	knot.SharedObject().Set("name", "yo")
 
 	return "Accessing /morning/index"
 }
