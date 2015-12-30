@@ -21,6 +21,9 @@ type App struct {
 	LayoutTemplate    string
 	ViewsPath         string
 	DefaultOutputType OutputType
+	UseSSL            bool
+	CertificatePath   string
+	PrivateKeyPath    string
 
 	controllers map[string]interface{}
 	statics     map[string]string
@@ -121,6 +124,12 @@ func StartApp(app *App, address string) *Server {
 	for surl, spath := range app.Statics() {
 		staticUrlPrefix := "/" + surl
 		ks.RouteStatic(staticUrlPrefix, spath)
+	}
+
+	if app.UseSSL {
+		ks.UseSSL = true
+		ks.CertificatePath = app.CertificatePath
+		ks.PrivateKeyPath = app.PrivateKeyPath
 	}
 
 	ks.Route("/status", statusContainer)
