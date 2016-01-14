@@ -62,6 +62,7 @@ func setCookieForSession(r *WebContext, cookieId string, tokenId string, expire 
 	}
 
 	r.cookies[cookieId] = c
+	http.SetCookie(r.Writer, c)
 }
 
 func getSessionTokenIdFromCookie(r *WebContext) string {
