@@ -2,6 +2,7 @@ package knot
 
 import (
 	"github.com/eaciit/toolkit"
+	"net/http"
 	"time"
 )
 
@@ -46,12 +47,29 @@ func (s Sessions) Get(tokenid, key string, def interface{}) interface{} {
 	return s[tokenid].Get(key, def)
 }
 
+/** use own cookie setter.
+using `knot.Cookie` will make cookie path follow the actual request path, causing returned cookie value will always different (or nil), if accessed from different page.
+because of that, fetching session value from one page to another becoming impossible */
+func setCookieForSession(r *WebContext, cookieId string, tokenId string, expire time.Duration) {
+	c := &http.Cookie{}
+	c.Name = cookieId
+	c.Value = tokenId
+	c.Expires = time.Now().Add(expire)
+	c.Path = "/"
+
+	if r.cookies == nil {
+		r.cookies = map[string]*http.Cookie{}
+	}
+
+	r.cookies[cookieId] = c
+}
+
 func getSessionTokenIdFromCookie(r *WebContext) string {
 	tokenId := ""
 	c, _ := r.Cookie(SessionCookieId(), "")
 	if c == nil {
 		tokenId = toolkit.GenerateRandomString("", 32)
-		r.SetCookie(SessionCookieId(), tokenId, time.Hour*24*30)
+		setCookieForSession(r, SessionCookieId(), tokenId, time.Hour*24*30)
 	} else {
 		tokenId = c.Value
 	}
