@@ -119,7 +119,7 @@ func main() {
   app := knot.NewApplication("")
   app.DefaultOutputType = knot.OutputHtml
   app.Register(&Hello{})
-  app.RegisterApp(app)
+  knot.RegisterApp(app)
   knot.StartApp(app,"localhost:12345")
 }
 ```
