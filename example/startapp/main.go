@@ -18,9 +18,13 @@ func main() {
 	app.Register(&Hello{})
 	knot.RegisterApp(app)
 
-	knot.StartApp(app, "localhost:8999", func(r *knot.WebContext) interface{} {
-		http.Redirect(r.Writer, r.Request, "/hello/index", http.StatusTemporaryRedirect)
-		return true
-	})
+	otherRoutes := map[string]knot.FnContent{
+		"/": func(r *knot.WebContext) interface{} {
+			http.Redirect(r.Writer, r.Request, "/hello/index", http.StatusTemporaryRedirect)
+			return true
+		},
+	}
+
+	knot.StartApp(app, "localhost:8999", otherRoutes)
 
 }

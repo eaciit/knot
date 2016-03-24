@@ -100,7 +100,7 @@ func getIncludeFiles(dirname string) []string {
 	return files
 }
 
-func StartApp(app *App, address string, routeIndexHandler ...FnContent) *Server {
+func StartApp(app *App, address string, otherRoutes map[string]FnContent) *Server {
 	DefaultOutputType = app.DefaultOutputType
 	ks := new(Server)
 	ks.Address = address
@@ -136,8 +136,8 @@ func StartApp(app *App, address string, routeIndexHandler ...FnContent) *Server 
 	ks.Route("/stop", stopContainer)
 	//ks.Route("/p", ShowPage)
 
-	if len(routeIndexHandler) > 0 {
-		ks.Route("/", routeIndexHandler[0])
+	for route, handler := range otherRoutes {
+		ks.Route(route, handler)
 	}
 
 	ks.Listen()
