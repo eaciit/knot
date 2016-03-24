@@ -10,7 +10,7 @@ type Hello struct {
 
 func (h *Hello) Index(r *knot.WebContext) interface{} {
 	r.Config.OutputType = knot.OutputHtml
-	return "Accessing /index using SSL enabled"
+	return `Redirected from /`
 }
 
 func main() {
@@ -25,6 +25,6 @@ func main() {
 		},
 	}
 
-	knot.StartApp(app, "localhost:8999", otherRoutes)
+	knot.StartAppWithFn(app, "localhost:8999", otherRoutes)
 
 }

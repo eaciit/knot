@@ -100,7 +100,11 @@ func getIncludeFiles(dirname string) []string {
 	return files
 }
 
-func StartApp(app *App, address string, otherRoutes map[string]FnContent) *Server {
+func StartApp(app *App, address string) *Server {
+	return StartAppWithFn(app, address, map[string]FnContent{})
+}
+
+func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) *Server {
 	DefaultOutputType = app.DefaultOutputType
 	ks := new(Server)
 	ks.Address = address
