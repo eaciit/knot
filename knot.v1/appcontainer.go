@@ -138,9 +138,13 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 
 	ks.Route("/status", statusContainer)
 	ks.Route("/stop", stopContainer)
-	//ks.Route("/p", ShowPage)
 
 	for route, handler := range otherRoutes {
+		if route == "page" {
+			ks.Route("/page/{param1}/{param2}/{param3}/{param4}", handler)
+			continue
+		}
+
 		ks.Route(route, handler)
 	}
 
@@ -150,6 +154,10 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 }
 
 func StartContainer(c *AppContainerConfig) *Server {
+	return StartContainerWithFn(c, map[string]FnContent{})
+}
+
+func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnContent) *Server {
 	ks := new(Server)
 	ks.Address = c.Address
 
@@ -182,7 +190,16 @@ func StartContainer(c *AppContainerConfig) *Server {
 
 	ks.Route("/status", statusContainer)
 	ks.Route("/stop", stopContainer)
-	//ks.Route("/p", ShowPage)
+
+	for route, handler := range otherRoutes {
+		if route == "page" {
+			ks.Route("/page/{param1}/{param2}/{param3}/{param4}", handler)
+			continue
+		}
+
+		ks.Route(route, handler)
+	}
+
 	ks.Listen()
 
 	return ks
