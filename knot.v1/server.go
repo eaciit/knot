@@ -232,10 +232,6 @@ func (s *Server) isReadyForSSL() bool {
 }
 
 func (s *Server) Listen() {
-	for key, _ := range s.router().Map {
-		fmt.Println(">", key)
-	}
-
 	s.start()
 	s.listen()
 }
