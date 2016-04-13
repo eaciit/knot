@@ -163,7 +163,7 @@ func (s *Server) RouteStatic(pathUrl, path string) {
 	s.Log().Info(fmt.Sprintf("Add static %s from %s", pathUrl, path))
 	fsHandler := http.StripPrefix(pathUrl, http.FileServer(http.Dir(path)))
 	// s.router().PathPrefix(pathUrl).Handler(fsHandler)
-	s.router().Handle(`/`+pathUrl+`/`, fsHandler)
+	s.router().Handle(pathUrl, fsHandler)
 }
 
 func (s *Server) Route(path string, fnc FnContent) {
@@ -230,6 +230,10 @@ func (s *Server) isReadyForSSL() bool {
 }
 
 func (s *Server) Listen() {
+	for key, _ := range s.router().Map {
+		fmt.Println(">", key)
+	}
+
 	s.start()
 	s.listen()
 }
