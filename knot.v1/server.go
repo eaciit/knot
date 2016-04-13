@@ -3,7 +3,6 @@ package knot
 import (
 	"fmt"
 	"github.com/eaciit/toolkit"
-	"github.com/gorilla/mux"
 	"net/http"
 	"os"
 	"reflect"
@@ -11,10 +10,49 @@ import (
 	"time"
 )
 
+type Router struct {
+	// implements golang multiplexor
+	mux *http.ServeMux
+
+	// map of routes, the value is pointer of interface `http.Handler`.
+	// this interface should have method `ServeHTTP(w ResponseWriter, r *Request)`
+	Map map[string]http.Handler
+}
+
+func (r *Router) HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+	if _, ok := r.Map[pattern]; ok {
+		return
+	}
+
+	r.mux.HandleFunc(pattern, handler)
+
+	// because the `Map` value must be interface `http.Handler`,
+	// we have to create some struct which contains method `ServeHTTP`,
+	// and fill the method with closure `handler` (2nd parameter)
+	r.Map[pattern] = toolkit.ToHttpHandler(handler)
+}
+
+func (r *Router) Handle(pattern string, handler http.Handler) {
+	if _, ok := r.Map[pattern]; ok {
+		return
+	}
+
+	r.mux.Handle(pattern, handler)
+	r.Map[pattern] = handler
+}
+
+func (r *Router) GetHandler(path string) http.Handler {
+	if val, ok := r.Map[path]; ok {
+		return val
+	} else {
+		return nil
+	}
+}
+
 type Server struct {
 	Address string
 
-	mxrouter        *mux.Router
+	mxrouter        *Router
 	log             *toolkit.LogEngine
 	status          chan string
 	UseSSL          bool
@@ -31,9 +69,10 @@ func (s *Server) Log() *toolkit.LogEngine {
 
 type FnContent func(r *WebContext) interface{}
 
-func (s *Server) router() *mux.Router {
+func (s *Server) router() *Router {
 	if s.mxrouter == nil {
-		s.mxrouter = mux.NewRouter()
+		s.mxrouter = &Router{mux: http.NewServeMux()}
+		s.mxrouter.Map = map[string]http.Handler{}
 	}
 	return s.mxrouter
 }
@@ -123,7 +162,8 @@ func (s *Server) RouteStatic(pathUrl, path string) {
 	fixUrlPath(&pathUrl, true, true)
 	s.Log().Info(fmt.Sprintf("Add static %s from %s", pathUrl, path))
 	fsHandler := http.StripPrefix(pathUrl, http.FileServer(http.Dir(path)))
-	s.router().PathPrefix(pathUrl).Handler(fsHandler)
+	// s.router().PathPrefix(pathUrl).Handler(fsHandler)
+	s.router().Handle(`/`+pathUrl+`/`, fsHandler)
 }
 
 func (s *Server) Route(path string, fnc FnContent) {
@@ -163,11 +203,7 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 }
 
 func (s *Server) GetHandler(path string) http.Handler {
-	mr := s.router().GetRoute(path)
-	if mr == nil {
-		return nil
-	}
-	return mr.GetHandler()
+	return s.GetHandler(path)
 }
 
 func (s *Server) GetAddress() string {
@@ -209,9 +245,9 @@ func (s *Server) start() error {
 				return
 			}
 
-			http.ListenAndServeTLS(addr, s.CertificatePath, s.PrivateKeyPath, s.router())
+			http.ListenAndServeTLS(addr, s.CertificatePath, s.PrivateKeyPath, s.router().mux)
 		} else {
-			http.ListenAndServe(addr, s.router())
+			http.ListenAndServe(addr, s.router().mux)
 		}
 	}()
 	return nil
