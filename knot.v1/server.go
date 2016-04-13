@@ -16,6 +16,7 @@ type Router struct {
 
 	// map of routes, the value is pointer of interface `http.Handler`.
 	// this interface should have method `ServeHTTP(w ResponseWriter, r *Request)`
+	// this variable is not used in routing process, but used on `GetHandler()`
 	Map map[string]http.Handler
 }
 
