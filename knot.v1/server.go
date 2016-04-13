@@ -11,7 +11,7 @@ import (
 )
 
 type Router struct {
-	// implements golang multiplexor
+	// implements golang own multiplexor
 	mux *http.ServeMux
 
 	// map of routes, the value is pointer of interface `http.Handler`.
