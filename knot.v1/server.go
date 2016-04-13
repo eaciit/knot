@@ -18,33 +18,33 @@ type Router struct {
 	// this interface should have method `ServeHTTP(w ResponseWriter, r *Request)`
 	// this variable is not used in routing process, but used on `GetHandler()`
 	// because golang does not provide function to get handler using specific route
-	Map map[string]http.Handler
+	routes map[string]http.Handler
 }
 
 func (r *Router) HandleFunc(pattern string, handler func(http.ResponseWriter, *http.Request)) {
-	if _, ok := r.Map[pattern]; ok {
+	if _, ok := r.routes[pattern]; ok {
 		return
 	}
 
 	r.mux.HandleFunc(pattern, handler)
 
-	// because the `Map` value must be interface `http.Handler`,
+	// because the `routes` value must be interface `http.Handler`,
 	// we have to create some struct which contains method `ServeHTTP`,
 	// and fill the method with closure `handler` (2nd parameter)
-	r.Map[pattern] = toolkit.ToHttpHandler(handler)
+	r.routes[pattern] = toolkit.ToHttpHandler(handler)
 }
 
 func (r *Router) Handle(pattern string, handler http.Handler) {
-	if _, ok := r.Map[pattern]; ok {
+	if _, ok := r.routes[pattern]; ok {
 		return
 	}
 
 	r.mux.Handle(pattern, handler)
-	r.Map[pattern] = handler
+	r.routes[pattern] = handler
 }
 
 func (r *Router) GetHandler(path string) http.Handler {
-	if val, ok := r.Map[path]; ok {
+	if val, ok := r.routes[path]; ok {
 		return val
 	} else {
 		return nil
@@ -74,7 +74,7 @@ type FnContent func(r *WebContext) interface{}
 func (s *Server) router() *Router {
 	if s.mxrouter == nil {
 		s.mxrouter = &Router{mux: http.NewServeMux()}
-		s.mxrouter.Map = map[string]http.Handler{}
+		s.mxrouter.routes = map[string]http.Handler{}
 	}
 	return s.mxrouter
 }
