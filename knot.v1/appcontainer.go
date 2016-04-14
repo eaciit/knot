@@ -231,6 +231,7 @@ func indexContainer(indexCallback FnContent, pageCallback FnContent) FnContent {
 		// otherwise, it will be / handler
 		if regex.MatchString(rURL) {
 			args := strings.Split(strings.Replace(rURL, "/page/", "", -1), "/")
+			// the rest param after /page/ stored on header with key `PAGE_ID`
 			r.Request.Header.Set("PAGE_ID", args[0])
 			if pageCallback != nil {
 				return pageCallback(r)
