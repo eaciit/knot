@@ -31,7 +31,7 @@ func (r *Router) HandleFunc(pattern string, handler func(http.ResponseWriter, *h
 	// because the `routes` value must be interface `http.Handler`,
 	// we have to create some struct which contains method `ServeHTTP`,
 	// and fill the method with closure `handler` (2nd parameter)
-	r.routes[pattern] = toolkit.ToHttpHandler(handler)
+	r.routes[pattern] = http.HandlerFunc(handler)
 }
 
 func (r *Router) Handle(pattern string, handler http.Handler) {

@@ -6,6 +6,7 @@ import (
 	//"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
 	// -- KnotApp Registration Start
 	// -- KnotAppRegistration End
@@ -139,9 +140,12 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 	ks.Route("/status", statusContainer)
 	ks.Route("/stop", stopContainer)
 
+	// register both / and /page which handlers are come from `otherRoutes`
+	ks.Route("/", indexContainer(otherRoutes["/"], otherRoutes["page"]))
+
 	for route, handler := range otherRoutes {
-		if route == "page" {
-			ks.Route("/page/{param1}/{param2}/{param3}/{param4}", handler)
+		// ignore handler from /page and /
+		if route == "page" || route == "/" {
 			continue
 		}
 
@@ -191,9 +195,12 @@ func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnConten
 	ks.Route("/status", statusContainer)
 	ks.Route("/stop", stopContainer)
 
+	// register both / and /page which handlers are come from `otherRoutes`
+	ks.Route("/", indexContainer(otherRoutes["/"], otherRoutes["page"]))
+
 	for route, handler := range otherRoutes {
-		if route == "page" {
-			ks.Route("/page/{param1}/{param2}/{param3}/{param4}", handler)
+		// ignore handler from /page and /
+		if route == "/" || route == "page" {
 			continue
 		}
 
@@ -213,4 +220,27 @@ func stopContainer(r *WebContext) interface{} {
 func statusContainer(r *WebContext) interface{} {
 	str := "Knot Server v1.0 (c) Eaciit"
 	return str
+}
+
+func indexContainer(indexCallback FnContent, pageCallback FnContent) FnContent {
+	return FnContent(func(r *WebContext) interface{} {
+		regex := regexp.MustCompile("/page/[a-zA-Z0-9_]+(/.*)?$")
+		rURL := r.Request.URL.String()
+
+		// if start with /page then use /page handler
+		// otherwise, it will be / handler
+		if regex.MatchString(rURL) {
+			args := strings.Split(strings.Replace(rURL, "/page/", "", -1), "/")
+			r.Request.Header.Set("PAGE_ID", args[0])
+			if pageCallback != nil {
+				return pageCallback(r)
+			}
+		} else {
+			if indexCallback != nil {
+				return indexCallback(r)
+			}
+		}
+
+		return nil
+	})
 }
