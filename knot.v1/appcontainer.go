@@ -161,6 +161,10 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 			continue
 		}
 
+		if !strings.HasPrefix(route, "/") {
+			route = fmt.Sprintf("/%s", route)
+		}
+
 		ks.Route(route, handler)
 	}
 
@@ -226,6 +230,10 @@ func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnConten
 		if routeLower == "postrequest" {
 			ks.PostRequest(handler)
 			continue
+		}
+
+		if !strings.HasPrefix(route, "/") {
+			route = fmt.Sprintf("/%s", route)
 		}
 
 		ks.Route(route, handler)
