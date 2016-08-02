@@ -144,8 +144,20 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 	ks.Route("/", indexContainer(otherRoutes["/"], otherRoutes["page"]))
 
 	for route, handler := range otherRoutes {
+		routeLower := strings.ToLower(route)
+
 		// ignore handler from /page and /
-		if route == "page" || route == "/" {
+		if routeLower == "page" || routeLower == "/" {
+			continue
+		}
+
+		if routeLower == "preroute" {
+			ks.PreRoute(handler)
+			continue
+		}
+
+		if routeLower == "postroute" {
+			ks.PostRoute(handler)
 			continue
 		}
 
@@ -199,8 +211,20 @@ func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnConten
 	ks.Route("/", indexContainer(otherRoutes["/"], otherRoutes["page"]))
 
 	for route, handler := range otherRoutes {
+		routeLower := strings.ToLower(route)
+
 		// ignore handler from /page and /
-		if route == "/" || route == "page" {
+		if routeLower == "page" || routeLower == "/" {
+			continue
+		}
+
+		if routeLower == "preroute" {
+			ks.PreRoute(handler)
+			continue
+		}
+
+		if routeLower == "postroute" {
+			ks.PostRoute(handler)
 			continue
 		}
 

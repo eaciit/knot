@@ -60,6 +60,9 @@ type Server struct {
 	UseSSL          bool
 	CertificatePath string
 	PrivateKeyPath  string
+
+	preRoute  FnContent
+	postRoute FnContent
 }
 
 func (s *Server) Log() *toolkit.LogEngine {
@@ -70,6 +73,14 @@ func (s *Server) Log() *toolkit.LogEngine {
 }
 
 type FnContent func(r *WebContext) interface{}
+
+func (s *Server) PreRoute(c FnContent) {
+	s.preRoute = c
+}
+
+func (s *Server) PostRoute(c FnContent) {
+	s.postRoute = c
+}
 
 func (s *Server) router() *Router {
 	if s.mxrouter == nil {
@@ -191,11 +202,22 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 					rcfg.OutputType = apps[rcfg.AppName].DefaultOutputType
 				}
 			}
+
+			if s.preRoute != nil {
+				s.preRoute(kr)
+			}
+
 			v := fnc(kr)
+
+			if s.preRoute != nil {
+				s.preRoute(kr)
+			}
+
 			if kr.Config.NoLog == false {
 				s.Log().Info(fmt.Sprintf("%s%s %s",
 					s.Address, r.URL.String(), r.RemoteAddr))
 			}
+
 			kr.WriteCookie()
 			kr.Write(v)
 		} else {
