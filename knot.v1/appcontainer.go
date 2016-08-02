@@ -143,14 +143,7 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 	// register both / and /page which handlers are come from `otherRoutes`
 	ks.Route("/", indexContainer(otherRoutes["/"], otherRoutes["page"]))
 
-	for route, handler := range otherRoutes {
-		// ignore handler from /page and /
-		if route == "page" || route == "/" {
-			continue
-		}
-
-		ks.Route(route, handler)
-	}
+	registerOtherRoutes(ks, otherRoutes)
 
 	ks.Listen()
 
@@ -198,14 +191,7 @@ func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnConten
 	// register both / and /page which handlers are come from `otherRoutes`
 	ks.Route("/", indexContainer(otherRoutes["/"], otherRoutes["page"]))
 
-	for route, handler := range otherRoutes {
-		// ignore handler from /page and /
-		if route == "/" || route == "page" {
-			continue
-		}
-
-		ks.Route(route, handler)
-	}
+	registerOtherRoutes(ks, otherRoutes)
 
 	ks.Listen()
 
@@ -244,4 +230,29 @@ func indexContainer(indexCallback FnContent, pageCallback FnContent) FnContent {
 
 		return nil
 	})
+}
+
+func registerOtherRoutes(ks *Server, otherRoutes map[string]FnContent) {
+	for route, handler := range otherRoutes {
+		if strings.ToLower(route) == "prerequest" {
+			ks.PreRequest(handler)
+			continue
+		}
+
+		if strings.ToLower(route) == "postrequest" {
+			ks.PostRequest(handler)
+			continue
+		}
+
+		if !strings.HasPrefix(route, "/") {
+			route = fmt.Sprintf("/%s", route)
+		}
+
+		// ignore handler from /page and /
+		if strings.ToLower(route) == "/page" || route == "/" {
+			continue
+		}
+
+		ks.Route(route, handler)
+	}
 }
