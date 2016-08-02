@@ -151,13 +151,13 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 			continue
 		}
 
-		if routeLower == "preroute" {
-			ks.PreRoute(handler)
+		if routeLower == "prerequest" {
+			ks.PreRequest(handler)
 			continue
 		}
 
-		if routeLower == "postroute" {
-			ks.PostRoute(handler)
+		if routeLower == "postrequest" {
+			ks.PostRequest(handler)
 			continue
 		}
 
@@ -218,13 +218,13 @@ func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnConten
 			continue
 		}
 
-		if routeLower == "preroute" {
-			ks.PreRoute(handler)
+		if routeLower == "prerequest" {
+			ks.PreRequest(handler)
 			continue
 		}
 
-		if routeLower == "postroute" {
-			ks.PostRoute(handler)
+		if routeLower == "postrequest" {
+			ks.PostRequest(handler)
 			continue
 		}
 
