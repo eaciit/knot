@@ -8,8 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strings"
 	"path/filepath"
+	"strings"
 )
 
 func (r *WebContext) Write(data interface{}) error {
@@ -62,10 +62,10 @@ func (r *WebContext) WriteTemplate(data interface{}) error {
 		if cfg.LayoutTemplate != "" {
 			useLayout = true
 			//viewFile += cfg.LayoutTemplate
-			viewFile=filepath.Join(viewFile,cfg.LayoutTemplate)
+			viewFile = filepath.Join(viewFile, cfg.LayoutTemplate)
 		} else {
 			//viewFile += cfg.ViewName
-			viewFile=filepath.Join(viewFile,cfg.ViewName)
+			viewFile = filepath.Join(viewFile, cfg.ViewName)
 		}
 		if useLayout {
 			buf := bytes.Buffer{}
@@ -93,7 +93,7 @@ func (r *WebContext) WriteTemplate(data interface{}) error {
 func (r *WebContext) writeToTemplate(w io.Writer, data interface{}, templateFile string) error {
 	cfg := r.Config
 	viewsPath := cfg.ViewsPath
-	viewFile := filepath.Join(viewsPath,templateFile)
+	viewFile := filepath.Join(viewsPath, templateFile)
 	bs, e := ioutil.ReadFile(viewFile)
 	if e != nil {
 		return e
@@ -110,11 +110,14 @@ func (r *WebContext) writeToTemplate(w io.Writer, data interface{}, templateFile
 			return base
 		},
 	}).Parse(string(bs))
+	if e != nil {
+		return e
+	}
 
 	for _, includeFile := range cfg.IncludeFiles {
 		if includeFile != cfg.LayoutTemplate && includeFile != templateFile {
 			//includeFilePath := viewsPath + includeFile
-			includeFilePath := filepath.Join(viewsPath,includeFile)
+			includeFilePath := filepath.Join(viewsPath, includeFile)
 			_, e = t.New(includeFile).ParseFiles(includeFilePath)
 			if e != nil {
 				return e
