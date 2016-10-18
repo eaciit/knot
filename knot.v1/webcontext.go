@@ -5,10 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/eaciit/toolkit"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
+
+	"github.com/eaciit/toolkit"
 )
 
 var (
@@ -45,6 +46,22 @@ func (r *WebContext) Query(id string) string {
 	}
 
 	return r.Request.URL.Query().Get(id)
+}
+
+func (r *WebContext) QueryDef(id string, def string) string {
+	q := r.Query(id)
+	if q == "" {
+		q = def
+	}
+	return q
+}
+
+func (r *WebContext) FormDef(id string, def string) string {
+	f := r.Form(id)
+	if f == "" {
+		f = def
+	}
+	return f
 }
 
 func (r *WebContext) Form(id string) string {
