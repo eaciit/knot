@@ -109,6 +109,9 @@ func (r *WebContext) writeToTemplate(w io.Writer, data interface{}, templateFile
 			}
 			return base
 		},
+		"UnescapeHTML": func(s string) template.HTML {
+			return template.HTML(s)
+		},
 	}).Parse(string(bs))
 	if e != nil {
 		return e
