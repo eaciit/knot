@@ -25,6 +25,7 @@ func (r *WebContext) SetCookie(name string, value string, expiresAfter time.Dura
 	c := &http.Cookie{}
 	c.Name = name
 	c.Value = value
+	c.Path = "/"
 	u, e := url.Parse(r.Request.URL.String())
 	if e == nil {
 		c.Expires = time.Now().Add(expiresAfter)
