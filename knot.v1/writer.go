@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/eaciit/toolkit"
 	"html/template"
 	"io"
 	"io/ioutil"
@@ -111,6 +112,16 @@ func (r *WebContext) writeToTemplate(w io.Writer, data interface{}, templateFile
 		},
 		"UnescapeHTML": func(s string) template.HTML {
 			return template.HTML(s)
+		},
+		"NoCacheUrl": func(s string) string {
+			concatenator := "?"
+			if strings.Contains(s, "?") {
+				concatenator = `&`
+			}
+
+			randomString := toolkit.RandomString(32)
+			noCachedUrl := fmt.Sprintf("%s%snocache=%s", s, concatenator, randomString)
+			return noCachedUrl
 		},
 	}).Parse(string(bs))
 	if e != nil {
