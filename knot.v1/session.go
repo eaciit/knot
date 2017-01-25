@@ -1,10 +1,10 @@
 package knot
 
 import (
-	"net/http"
-	"time"
-
 	"github.com/eaciit/toolkit"
+	"net/http"
+	"sync"
+	"time"
 )
 
 type Sessions map[string]toolkit.M
@@ -12,6 +12,7 @@ type Sessions map[string]toolkit.M
 var (
 	sessionCookieId string
 	sessions        Sessions
+	sessionLocker   *sync.RWMutex = new(sync.RWMutex)
 )
 
 func SetSessionCookieId(id string) {
@@ -40,12 +41,20 @@ func (s Sessions) InitTokenBucket(tokenid string) {
 
 func (s Sessions) Set(tokenid, key string, value interface{}) {
 	s.InitTokenBucket(tokenid)
+
+	sessionLocker.Lock()
 	s[tokenid].Set(key, value)
+	sessionLocker.Unlock()
 }
 
 func (s Sessions) Get(tokenid, key string, def interface{}) interface{} {
 	s.InitTokenBucket(tokenid)
-	return s[tokenid].Get(key, def)
+
+	sessionLocker.RLock()
+	value := s[tokenid].Get(key, def)
+	sessionLocker.RUnlock()
+
+	return value
 }
 
 /** use own cookie setter.
