@@ -3,13 +3,11 @@ package knot
 import (
 	"fmt"
 	"io/ioutil"
-	//"os"
+	"net/http"
 	"path/filepath"
 	"reflect"
 	"regexp"
 	"strings"
-	// -- KnotApp Registration Start
-	// -- KnotAppRegistration End
 )
 
 var (
@@ -230,6 +228,8 @@ func indexContainer(indexCallback FnContent, pageCallback FnContent) FnContent {
 			}
 		}
 
+		// If the pageCallback or indexCallback not provided, then it should return 404
+		http.Error(r.Writer, "404 Page not found", 404)
 		return nil
 	})
 }
