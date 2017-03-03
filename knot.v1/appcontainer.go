@@ -204,6 +204,8 @@ func stopContainer(r *WebContext) interface{} {
 }
 
 func statusContainer(r *WebContext) interface{} {
+	r.Config.OutputType = OutputHtml
+
 	str := "Knot Server v1.0 (c) Eaciit"
 	return str
 }
