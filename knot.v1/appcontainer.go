@@ -198,7 +198,7 @@ func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnConten
 
 func stopContainer(r *WebContext) interface{} {
 	defer r.Server.Stop()
-	return "Knot Server (" + r.Server.Address + ") will be stopped. Bye"
+	return "Knot Server (" + r.Server.Address + ") will be stopped. Bye\n"
 }
 
 func statusContainer(r *WebContext) interface{} {

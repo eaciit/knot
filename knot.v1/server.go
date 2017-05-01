@@ -2,12 +2,14 @@ package knot
 
 import (
 	"fmt"
-	"github.com/eaciit/toolkit"
 	"net/http"
 	"os"
 	"reflect"
 	"strings"
+
 	"time"
+
+	"github.com/eaciit/toolkit"
 )
 
 type Router struct {
@@ -279,7 +281,10 @@ func (s *Server) start() error {
 
 func (s *Server) Stop() {
 	s.Log().Info(fmt.Sprintf("Stopping server %s", s.Address))
-	s.status <- "Stop"
+	go func() {
+		time.Sleep(1 * time.Second)
+		s.status <- "Stop"
+	}()
 }
 
 func (s *Server) listen() {
@@ -292,7 +297,7 @@ func (s *Server) listen() {
 			}
 
 		default:
-			time.Sleep(1 * time.Millisecond)
+			//time.Sleep(1 * time.Second)
 		}
 	}
 }
