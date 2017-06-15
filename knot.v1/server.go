@@ -288,16 +288,5 @@ func (s *Server) Stop() {
 }
 
 func (s *Server) listen() {
-	running := true
-	for running {
-		select {
-		case status := <-s.status:
-			if status == "Stop" {
-				running = false
-			}
-
-		default:
-			//time.Sleep(1 * time.Second)
-		}
-	}
+	<-s.status
 }
