@@ -295,9 +295,6 @@ func (s *Server) listen() {
 			if status == "Stop" {
 				running = false
 			}
-
-		default:
-			//time.Sleep(1 * time.Second)
 		}
 	}
 }
