@@ -290,8 +290,6 @@ func (s *Server) Stop() {
 func (s *Server) listen() {
 	running := true
 	for running {
-		fmt.Println("hello")
-
 		select {
 		case status := <-s.status:
 			if status == "Stop" {
