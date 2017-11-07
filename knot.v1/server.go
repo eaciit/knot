@@ -2,14 +2,12 @@ package knot
 
 import (
 	"fmt"
+	"github.com/eaciit/toolkit"
 	"net/http"
 	"os"
 	"reflect"
 	"strings"
-
 	"time"
-
-	"github.com/eaciit/toolkit"
 )
 
 type Router struct {
@@ -177,8 +175,7 @@ func (s *Server) RouteStatic(pathUrl, path string) {
 	fixUrlPath(&pathUrl, true, true)
 	s.Log().Info(fmt.Sprintf("Add static %s from %s", pathUrl, path))
 	fsHandler := http.StripPrefix(pathUrl, http.FileServer(http.Dir(path)))
-	// s.router().PathPrefix(pathUrl).Handler(fsHandler)
-	s.router().Handle(pathUrl, fsHandler)
+	s.router().Handle(pathUrl, GzipHandler(fsHandler))
 }
 
 func (s *Server) Route(path string, fnc FnContent) {
