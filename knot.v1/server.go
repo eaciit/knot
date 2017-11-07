@@ -2,7 +2,6 @@ package knot
 
 import (
 	"fmt"
-	"github.com/NYTimes/gziphandler"
 	"github.com/eaciit/toolkit"
 	"net/http"
 	"os"
@@ -176,7 +175,7 @@ func (s *Server) RouteStatic(pathUrl, path string) {
 	fixUrlPath(&pathUrl, true, true)
 	s.Log().Info(fmt.Sprintf("Add static %s from %s", pathUrl, path))
 	fsHandler := http.StripPrefix(pathUrl, http.FileServer(http.Dir(path)))
-	s.router().Handle(pathUrl, gziphandler.GzipHandler(fsHandler))
+	s.router().Handle(pathUrl, GzipHandler(fsHandler))
 }
 
 func (s *Server) Route(path string, fnc FnContent) {
