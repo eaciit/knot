@@ -258,16 +258,16 @@ To enable validation
 app.SetValidation(true, func(k *knot.WebContext)bool{
       session := k.Session("ecappsessionid")
       if session==nil {
-        k.Config.SetData("validationresult","nosession")
+        k.SetData("validationresult","nosession")
         return false
       } else if !checkSomething(session){
-        k.Config.SetData("validationresult","noaccess")
+        k.SetData("validationresult","noaccess")
         return false
       }
 
       return true
   }, func(k *knot.WebContext) string {
-    vr := k.Config.Data("validationresult","").(string)
+    vr := k.Data("validationresult","").(string)
     if vr=="nosession" {
       return "/home/login"
     } else {
