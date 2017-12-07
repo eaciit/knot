@@ -2,12 +2,13 @@ package knot
 
 import (
 	"fmt"
-	"github.com/eaciit/toolkit"
 	"net/http"
 	"os"
 	"reflect"
 	"strings"
 	"time"
+
+	"github.com/eaciit/toolkit"
 )
 
 type Router struct {
@@ -189,17 +190,15 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 		if fnc != nil {
 			rcfg := NewResponseConfig()
 			*rcfg = *cfg
+
+			app := rcfg.App
 			kr := new(WebContext)
 			kr.Server = s
 			kr.Request = r
 			kr.Writer = w
 			kr.Config = rcfg
 			if int(rcfg.OutputType) == 0 {
-				if rcfg.AppName == "" {
-					rcfg.OutputType = DefaultOutputType
-				} else {
-					rcfg.OutputType = apps[rcfg.AppName].DefaultOutputType
-				}
+				rcfg.OutputType = app.DefaultOutputType
 			}
 
 			if s.preRequest != nil {
@@ -207,6 +206,34 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 			}
 
 			v := fnc(kr)
+
+			if app != nil && app.requireSessionValidation && !kr.Config.IgnoreSessionValidation {
+				valid := true
+
+				if app.sessionName == "" {
+					w.WriteHeader(http.StatusInternalServerError)
+					w.Write([]byte("500 - Require session info is not complete"))
+					return
+				}
+
+				if s := kr.Session(app.sessionName); s == nil {
+					valid = false
+				}
+
+				if !valid {
+					url := ""
+					if app.fnRedirectUrl != nil {
+						url = app.fnRedirectUrl(kr)
+					}
+					if url != "" {
+						http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+					} else {
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write([]byte("500 - Require session info is not complete"))
+						return
+					}
+				}
+			}
 
 			if s.postRequest != nil {
 				s.postRequest(kr)

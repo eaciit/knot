@@ -26,6 +26,10 @@ type App struct {
 
 	controllers map[string]interface{}
 	statics     map[string]string
+
+	requireSessionValidation bool
+	sessionName              string
+	fnRedirectUrl            func(*WebContext) string
 }
 
 func (a *App) Register(c interface{}) error {
@@ -52,6 +56,12 @@ func (a *App) Static(prefix, path string) {
 		return
 	}
 	a.Statics()[prefix] = path
+}
+
+func (a *App) SetSessionValidation(require bool, sessionName string, fn func(*WebContext) string) {
+	a.requireSessionValidation = require
+	a.sessionName = sessionName
+	a.fnRedirectUrl = fn
 }
 
 func (a *App) Controllers() map[string]interface{} {
@@ -116,12 +126,14 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 	}
 	ks.Log().Info("Scan application " + app.Name + " for controller registration")
 	for _, controller := range app.Controllers() {
-		ks.RegisterWithConfig(controller, "", &ResponseConfig{
+		r := &ResponseConfig{
 			//AppName:        appname,
 			ViewsPath:      app.ViewsPath,
 			LayoutTemplate: app.LayoutTemplate,
 			IncludeFiles:   includes,
-		})
+			App:            app,
+		}
+		ks.RegisterWithConfig(controller, "", r)
 	}
 
 	for surl, spath := range app.Statics() {
