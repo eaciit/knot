@@ -26,18 +26,18 @@ func (o OutputType) String() string {
 }
 
 type ResponseConfig struct {
-	AppName                 string
-	App                     *App
-	ControllerName          string
-	MethodName              string
-	ViewName                string
-	OutputType              OutputType
-	IgnoreSessionValidation bool
-	LayoutTemplate          string
-	ViewsPath               string
-	IncludeFiles            []string
-	NoLog                   bool
-	Headers                 map[string]string
+	AppName          string
+	App              *App
+	ControllerName   string
+	MethodName       string
+	ViewName         string
+	OutputType       OutputType
+	IgnoreValidation bool
+	LayoutTemplate   string
+	ViewsPath        string
+	IncludeFiles     []string
+	NoLog            bool
+	Headers          map[string]string
 }
 
 func NewResponseConfig() *ResponseConfig {

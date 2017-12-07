@@ -250,14 +250,24 @@ func (w *WorldController) Cookie(r *knot.WebContext) interface{} {
 ## Session Validation
 To enable validation
 ```go
-app.SetSessionValidation(true, "ecappsessionid", func(k *knot.WebContext) string {
+/* SetSessionValidation enable session validation on a controller
+  EnableDisable   bool
+  fnValidate      validation process
+  fnUrl           url to be redirected 
+*/
+app.SetSessionValidation(true, func(k *knot.WebContext)bool{
+      session := k.Session("ecappsessionid")
+      return session!=nil
+  }, func(k *knot.WebContext) string {
 		return "/home/login"
-  })
+  }) 
 ```
 and to ignore validation on specific controller
 ```go
 func (c *AController) MethodName(k *knot.WebContext)interface{}{
   k.Config.IgnoreSessionVaidation=true
+
+  ...
 }
 ```
 

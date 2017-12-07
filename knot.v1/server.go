@@ -207,18 +207,16 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 
 			v := fnc(kr)
 
-			if app != nil && app.requireSessionValidation && !kr.Config.IgnoreSessionValidation {
+			if app != nil && app.requireValidation && !kr.Config.IgnoreValidation {
 				valid := true
 
-				if app.sessionName == "" {
+				if app.fnRedirectUrl == nil {
 					w.WriteHeader(http.StatusInternalServerError)
 					w.Write([]byte("500 - Require session info is not complete"))
 					return
 				}
 
-				if s := kr.Session(app.sessionName); s == nil {
-					valid = false
-				}
+				valid = app.fnValidate(kr)
 
 				if !valid {
 					url := ""

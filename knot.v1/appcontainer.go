@@ -27,9 +27,9 @@ type App struct {
 	controllers map[string]interface{}
 	statics     map[string]string
 
-	requireSessionValidation bool
-	sessionName              string
-	fnRedirectUrl            func(*WebContext) string
+	requireValidation bool
+	fnValidate        func(*WebContext) bool
+	fnRedirectUrl     func(*WebContext) string
 }
 
 func (a *App) Register(c interface{}) error {
@@ -58,10 +58,10 @@ func (a *App) Static(prefix, path string) {
 	a.Statics()[prefix] = path
 }
 
-func (a *App) SetSessionValidation(require bool, sessionName string, fn func(*WebContext) string) {
-	a.requireSessionValidation = require
-	a.sessionName = sessionName
-	a.fnRedirectUrl = fn
+func (a *App) SetValidation(require bool, fnValidate func(*WebContext) bool, fnRedirect func(*WebContext) string) {
+	a.requireValidation = require
+	a.fnValidate = fnValidate
+	a.fnRedirectUrl = fnRedirect
 }
 
 func (a *App) Controllers() map[string]interface{} {
