@@ -253,7 +253,7 @@ To enable validation
 /* SetValidation enable session validation on a controller
   EnableDisable   bool
   fnValidate      validation process
-  fnUrl           url to be redirected 
+  fnUrl           url to be redirected if validation fail
 */
 app.SetValidation(true, func(k *knot.WebContext)bool{
       session := k.Session("ecappsessionid")
