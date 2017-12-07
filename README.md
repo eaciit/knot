@@ -247,7 +247,7 @@ func (w *WorldController) Cookie(r *knot.WebContext) interface{} {
 }
 ```
 
-## Session Validation
+## Controller Validation
 To enable validation
 ```go
 /* SetValidation enable session validation on a controller
