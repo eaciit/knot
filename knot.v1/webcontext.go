@@ -24,6 +24,7 @@ type WebContext struct {
 
 	queryKeys []string
 	cookies   map[string]*http.Cookie
+	data      toolkit.M
 }
 
 func (r *WebContext) QueryKeys() []string {
@@ -62,6 +63,20 @@ func (r *WebContext) FormDef(id string, def string) string {
 		f = def
 	}
 	return f
+}
+
+func (r *WebContext) Data(key string, def interface{}) interface{} {
+	if r.data == nil {
+		r.data = toolkit.M{}
+	}
+	return r.data.Get(key, def)
+}
+
+func (r *WebContext) SetData(key string, value interface{}) {
+	if r.data == nil {
+		r.data = toolkit.M{}
+	}
+	r.data.Set(key, value)
 }
 
 func (r *WebContext) Form(id string) string {
