@@ -1,5 +1,7 @@
 package knot
 
+import "github.com/eaciit/toolkit"
+
 type OutputType int
 
 const (
@@ -38,7 +40,8 @@ type ResponseConfig struct {
 	IncludeFiles     []string
 	NoLog            bool
 	Headers          map[string]string
-	Data             interface{}
+
+	data toolkit.M
 }
 
 func NewResponseConfig() *ResponseConfig {
@@ -47,4 +50,18 @@ func NewResponseConfig() *ResponseConfig {
 	c.IncludeFiles = []string{}
 	c.OutputType = DefaultOutputType
 	return c
+}
+
+func (r *ResponseConfig) Data(key string, def interface{}) interface{} {
+	if r.data == nil {
+		r.data = toolkit.M{}
+	}
+	return r.data.Get(key, def)
+}
+
+func (r *ResponseConfig) SetData(key string, value interface{}) {
+	if r.data == nil {
+		r.data = toolkit.M{}
+	}
+	r.data.Set(key, value)
 }

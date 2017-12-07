@@ -257,9 +257,22 @@ To enable validation
 */
 app.SetValidation(true, func(k *knot.WebContext)bool{
       session := k.Session("ecappsessionid")
-      return session!=nil
+      if session==nil {
+        k.Config.SetData("validationresult","nosession")
+        return false
+      } else if !checkSomething(session){
+        k.Config.SetData("validationresult","noaccess")
+        return false
+      }
+
+      return true
   }, func(k *knot.WebContext) string {
-		return "/home/login"
+    vr := k.Config.Data("validationresult","").(string)
+    if vr=="nosession" {
+      return "/home/login"
+    } else {
+      return "/page/noaccess"
+    }
   }) 
 ```
 and to ignore validation on specific controller
