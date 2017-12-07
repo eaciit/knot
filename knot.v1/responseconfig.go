@@ -38,6 +38,7 @@ type ResponseConfig struct {
 	IncludeFiles     []string
 	NoLog            bool
 	Headers          map[string]string
+	Data             interface{}
 }
 
 func NewResponseConfig() *ResponseConfig {
