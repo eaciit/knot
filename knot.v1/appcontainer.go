@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"strings"
 )
 
@@ -151,9 +150,15 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 	ks.Route("/stop", stopContainer)
 
 	// register both / and /page which handlers are come from `otherRoutes`
-	ks.Route("/", indexContainer(otherRoutes["/"], otherRoutes["page"]))
-
-	registerOtherRoutes(ks, otherRoutes)
+	rc := &ResponseConfig{
+		//AppName:        appname,
+		ViewsPath:      app.ViewsPath,
+		LayoutTemplate: app.LayoutTemplate,
+		IncludeFiles:   includes,
+		App:            app,
+	}
+	registerOtherRoutesConfig(ks, otherRoutes, rc)
+	ks.RouteWithConfig("/", indexContainer(otherRoutes["/"], otherRoutes["page"]), rc)
 
 	ks.Listen()
 
@@ -222,13 +227,13 @@ func statusContainer(r *WebContext) interface{} {
 
 func indexContainer(indexCallback FnContent, pageCallback FnContent) FnContent {
 	return FnContent(func(r *WebContext) interface{} {
-		regex := regexp.MustCompile("/page/[a-zA-Z0-9_]+(/.*)?$")
+		//regex := regexp.MustCompile("/page/[a-zA-Z0-9_]+(/.*)?$")
 		rURL := r.Request.URL.String()
 
 		// if start with /page then use /page handler
 		// otherwise, it will be / handler
-		if regex.MatchString(rURL) {
-			args := strings.Split(strings.Replace(rURL, "/page/", "", -1), "/")
+		if strings.HasPrefix(strings.ToLower(rURL), "/page/") {
+			args := strings.Split(strings.Replace(rURL, "/page/", "/", -1), "?")
 			// the rest param after /page/ stored on header with key `PAGE_ID`
 			r.Request.Header.Set("PAGE_ID", args[0])
 			if pageCallback != nil {
@@ -247,6 +252,10 @@ func indexContainer(indexCallback FnContent, pageCallback FnContent) FnContent {
 }
 
 func registerOtherRoutes(ks *Server, otherRoutes map[string]FnContent) {
+	registerOtherRoutesConfig(ks, otherRoutes, nil)
+}
+
+func registerOtherRoutesConfig(ks *Server, otherRoutes map[string]FnContent, cfg *ResponseConfig) {
 	for route, handler := range otherRoutes {
 		if strings.ToLower(route) == "prerequest" {
 			ks.PreRequest(handler)
@@ -267,6 +276,12 @@ func registerOtherRoutes(ks *Server, otherRoutes map[string]FnContent) {
 			continue
 		}
 
-		ks.Route(route, handler)
+		if cfg == nil {
+			ks.Route(route, handler)
+		} else {
+			newcfg := new(ResponseConfig)
+			*newcfg = *cfg
+			ks.RouteWithConfig(route, handler, cfg)
+		}
 	}
 }
