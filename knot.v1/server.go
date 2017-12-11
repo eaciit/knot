@@ -197,7 +197,7 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 			kr.Request = r
 			kr.Writer = w
 			kr.Config = rcfg
-			if int(rcfg.OutputType) == 0 {
+			if app != nil && int(rcfg.OutputType) == 0 {
 				rcfg.OutputType = app.DefaultOutputType
 			}
 
