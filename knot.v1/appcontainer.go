@@ -184,14 +184,19 @@ func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnConten
 		if app.ViewsPath != "" {
 			includes = getIncludeFiles(app.ViewsPath)
 		}
+		rcfg := &ResponseConfig{
+			AppName:        k,
+			App:            app,
+			ViewsPath:      app.ViewsPath,
+			LayoutTemplate: app.LayoutTemplate,
+			IncludeFiles:   includes,
+		}
+
 		ks.Log().Info("Scan application " + appname + " for controller registration")
 		for _, controller := range app.Controllers() {
-			ks.RegisterWithConfig(controller, appname, &ResponseConfig{
-				AppName:        k,
-				ViewsPath:      app.ViewsPath,
-				LayoutTemplate: app.LayoutTemplate,
-				IncludeFiles:   includes,
-			})
+			rcfgCtl := new(ResponseConfig)
+			*rcfgCtl = *rcfg
+			ks.RegisterWithConfig(controller, appname, rcfgCtl)
 		}
 
 		for surl, spath := range app.Statics() {
@@ -205,7 +210,6 @@ func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnConten
 
 	// register both / and /page which handlers are come from `otherRoutes`
 	ks.Route("/", indexContainer(otherRoutes["/"], otherRoutes["page"]))
-
 	registerOtherRoutes(ks, otherRoutes)
 
 	ks.Listen()
