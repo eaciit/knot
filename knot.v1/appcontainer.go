@@ -109,12 +109,19 @@ func getIncludeFiles(dirname string) []string {
 }
 
 func StartApp(app *App, address string) *Server {
-	return StartAppWithFn(app, address, map[string]FnContent{})
+	return startApp(app, address, new(Server), make(map[string]FnContent))
 }
 
 func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) *Server {
+	return startApp(app, address, new(Server), otherRoutes)
+}
+
+func StartAppWithServerAndFn(app *App, address string, ks *Server, otherRoutes map[string]FnContent) *Server {
+	return startApp(app, address, ks, otherRoutes)
+}
+
+func startApp(app *App, address string, ks *Server, otherRoutes map[string]FnContent) *Server {
 	DefaultOutputType = app.DefaultOutputType
-	ks := new(Server)
 	ks.Address = address
 
 	//appname := app.Name
@@ -166,11 +173,18 @@ func StartAppWithFn(app *App, address string, otherRoutes map[string]FnContent) 
 }
 
 func StartContainer(c *AppContainerConfig) *Server {
-	return StartContainerWithFn(c, map[string]FnContent{})
+	return startContainer(c, new(Server), make(map[string]FnContent))
 }
 
 func StartContainerWithFn(c *AppContainerConfig, otherRoutes map[string]FnContent) *Server {
-	ks := new(Server)
+	return startContainer(c, new(Server), otherRoutes)
+}
+
+func StartContainerWithServerAndFn(c *AppContainerConfig, ks *Server, otherRoutes map[string]FnContent) *Server {
+	return startContainer(c, ks, otherRoutes)
+}
+
+func startContainer(c *AppContainerConfig, ks *Server, otherRoutes map[string]FnContent) *Server {
 	ks.Address = c.Address
 
 	for k, app := range apps {
