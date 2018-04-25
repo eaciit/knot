@@ -7,13 +7,24 @@ import (
 	"github.com/eaciit/toolkit"
 )
 
-type Sessions map[string]toolkit.M
+//type Sessions map[string]toolkit.M
+type Sessions struct {
+	sync.RWMutex
+	data map[string]toolkit.M
+}
 
 var (
 	sessionCookieId string
-	sessions        Sessions      = make(map[string]toolkit.M)
-	sessionLocker   *sync.RWMutex = new(sync.RWMutex)
+	sessions        *Sessions
 )
+
+func init() {
+	once := sync.Once{}
+	once.Do(func() {
+		sessions = new(Sessions)
+		sessions.data = map[string]toolkit.M{}
+	})
+}
 
 func SetSessionCookieId(id string) {
 	sessionCookieId = id
@@ -27,27 +38,27 @@ func SessionCookieId() string {
 }
 
 func (s Sessions) InitTokenBucket(tokenid string) {
-	sessionLocker.Lock()
-	if _, b := s[tokenid]; !b {
-		s[tokenid] = toolkit.M{}
+	s.Lock()
+	if _, b := s.data[tokenid]; !b {
+		s.data[tokenid] = toolkit.M{}
 	}
-	sessionLocker.Unlock()
+	s.Unlock()
 }
 
 func (s Sessions) Set(tokenid, key string, value interface{}) {
 	s.InitTokenBucket(tokenid)
 
-	sessionLocker.Lock()
-	s[tokenid].Set(key, value)
-	sessionLocker.Unlock()
+	s.Lock()
+	s.data[tokenid].Set(key, value)
+	s.Unlock()
 }
 
 func (s Sessions) Get(tokenid, key string, def interface{}) interface{} {
 	s.InitTokenBucket(tokenid)
 
-	sessionLocker.RLock()
-	value := s[tokenid].Get(key, def)
-	sessionLocker.RUnlock()
+	s.RLock()
+	value := s.data[tokenid].Get(key, def)
+	s.RUnlock()
 
 	return value
 }
