@@ -38,11 +38,16 @@ func SessionCookieId() string {
 }
 
 func (s Sessions) InitTokenBucket(tokenid string) {
-	s.Lock()
-	if _, b := s.data[tokenid]; !b {
+	var b bool
+	s.RLock()
+	_, b = s.data[tokenid]
+	s.RUnlock()
+
+	if !b {
+		s.Lock()
 		s.data[tokenid] = toolkit.M{}
+		s.Unlock()
 	}
-	s.Unlock()
 }
 
 func (s Sessions) Set(tokenid, key string, value interface{}) {
