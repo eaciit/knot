@@ -3,22 +3,32 @@ package knot
 import (
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 )
 
-var DefaultCookieExpire time.Duration
-
-func (r *WebContext) initCookies() {
-	if r.cookies == nil {
-		r.cookies = make(map[string]*http.Cookie)
-	}
+type CookieStore struct {
+	sync.RWMutex
+	data map[string]*http.Cookie
 }
 
-func (r *WebContext) Cookie(name string, def string) (*http.Cookie, bool) {
-	r.initCookies()
+var DefaultCookieExpire time.Duration
+
+func (cs *CookieStore) initCookies() {
+	cs.Lock()
+	if cs.data == nil {
+		cs.data = make(map[string]*http.Cookie)
+	}
+	cs.Unlock()
+}
+
+func (cs *CookieStore) getCookie(r *WebContext, name string, def string) (*http.Cookie, bool) {
+	cs.initCookies()
 
 	// first search on new cookies
-	c, exist := r.cookies[name]
+	cs.RLock()
+	c, exist := cs.data[name]
+	cs.RUnlock()
 
 	// when not found, try to search on request cookies
 	if exist == false {
@@ -35,14 +45,15 @@ func (r *WebContext) Cookie(name string, def string) (*http.Cookie, bool) {
 		if int(DefaultCookieExpire) == 0 {
 			DefaultCookieExpire = 30 * 24 * time.Hour
 		}
-		r.SetCookie(name, def, DefaultCookieExpire)
+
+		cs.setCookie(r, name, def, DefaultCookieExpire)
 	}
 
 	return c, exist
 }
 
-func (r *WebContext) SetCookie(name string, value string, expiresAfter time.Duration) *http.Cookie {
-	r.initCookies()
+func (cs *CookieStore) setCookie(r *WebContext, name string, value string, expiresAfter time.Duration) *http.Cookie {
+	cs.initCookies()
 
 	c := &http.Cookie{}
 	c.Name = name
@@ -54,13 +65,19 @@ func (r *WebContext) SetCookie(name string, value string, expiresAfter time.Dura
 		c.Domain = u.Host
 	}
 
-	r.cookies[name] = c
+	cs.Lock()
+	cs.data[name] = c
+	cs.Unlock()
 
 	return c
 }
 
-func (r *WebContext) Cookies() map[string]*http.Cookie {
-	r.initCookies()
+func (cs *CookieStore) getAllCookies() map[string]*http.Cookie {
+	cs.initCookies()
 
-	return r.cookies
+	cs.RLock()
+	data := cs.data
+	cs.RUnlock()
+
+	return data
 }

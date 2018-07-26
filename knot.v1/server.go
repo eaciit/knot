@@ -193,6 +193,7 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 
 			app := rcfg.App
 			kr := new(WebContext)
+			kr.cookieStore = new(CookieStore)
 			kr.Server = s
 			kr.Request = r
 			kr.Writer = w

@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/eaciit/toolkit"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
-
-	"github.com/eaciit/toolkit"
+	"time"
 )
 
 var (
@@ -22,9 +22,9 @@ type WebContext struct {
 	Request *http.Request
 	Writer  http.ResponseWriter
 
-	queryKeys []string
-	cookies   map[string]*http.Cookie
-	data      toolkit.M
+	queryKeys   []string
+	cookieStore *CookieStore
+	data        toolkit.M
 }
 
 func (r *WebContext) QueryKeys() []string {
@@ -141,4 +141,16 @@ func (r *WebContext) GetPayloadMultipart(result interface{}) (map[string][]*mult
 	}
 	m := r.Request.MultipartForm
 	return m.File, m.Value, nil
+}
+
+func (r *WebContext) Cookie(name string, def string) (*http.Cookie, bool) {
+	return r.cookieStore.getCookie(r, name, def)
+}
+
+func (r *WebContext) SetCookie(name string, value string, expiresAfter time.Duration) *http.Cookie {
+	return r.cookieStore.setCookie(r, name, value, expiresAfter)
+}
+
+func (r *WebContext) Cookies() map[string]*http.Cookie {
+	return r.cookieStore.getAllCookies()
 }
