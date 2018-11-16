@@ -187,6 +187,12 @@ func (s *Server) RouteWithConfig(path string, fnc FnContent, cfg *ResponseConfig
 	fixUrlPath(&path, true, false)
 	s.Log().Info(fmt.Sprintf("Registering handler for %s", path))
 	s.router().HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				s.Log().Errorf("Panic error detected: %v", rec)
+			}
+		}()
+
 		if fnc != nil {
 			rcfg := NewResponseConfig()
 			*rcfg = *cfg
