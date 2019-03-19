@@ -37,7 +37,7 @@ func SessionCookieId() string {
 	return sessionCookieId
 }
 
-func (s Sessions) InitTokenBucket(tokenid string) {
+func (s *Sessions) InitTokenBucket(tokenid string) {
 	var b bool
 	s.RLock()
 	_, b = s.data[tokenid]
@@ -50,7 +50,7 @@ func (s Sessions) InitTokenBucket(tokenid string) {
 	}
 }
 
-func (s Sessions) Set(tokenid, key string, value interface{}) {
+func (s *Sessions) Set(tokenid, key string, value interface{}) {
 	s.InitTokenBucket(tokenid)
 
 	s.Lock()
@@ -58,7 +58,7 @@ func (s Sessions) Set(tokenid, key string, value interface{}) {
 	s.Unlock()
 }
 
-func (s Sessions) Get(tokenid, key string, def interface{}) interface{} {
+func (s *Sessions) Get(tokenid, key string, def interface{}) interface{} {
 	s.InitTokenBucket(tokenid)
 
 	s.RLock()
